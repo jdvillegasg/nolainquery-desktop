@@ -33,6 +33,7 @@ import {
   type QueryUsage,
 } from "./usageMetrics";
 import SettingsView from "./views/settings/SettingsView";
+import { activeLlmCredential } from "./inferenceSettings";
 import { loadFeatureSettings } from "./featureSettings";
 import { loadLlmModels, resetLlmModelCache, resolveThreadLlmModelId } from "./llmModels";
 import PinnedCanvas from "./PinnedCanvas";
@@ -1528,6 +1529,11 @@ function App() {
     }
     if (!apiKey) {
       const content = "No API key configured. Go to Settings and paste your nolainquery API key.";
+      addConversationMsg({ role: 'assistant', content, type: 'error', timestamp: Date.now() });
+      return;
+    }
+    if (!activeLlmCredential()) {
+      const content = "No OpenRouter key configured. Go to Settings, paste your OpenRouter key, and save inference settings.";
       addConversationMsg({ role: 'assistant', content, type: 'error', timestamp: Date.now() });
       return;
     }

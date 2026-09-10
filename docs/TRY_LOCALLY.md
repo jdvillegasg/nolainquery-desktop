@@ -68,8 +68,10 @@ Alternatively, copy `desktop_app/frontend/.env.example` to
 ## Verify the first run
 
 1. Open **Settings**, paste your nolainquery API key, and choose **Save API Key**.
-2. If you use BYOK, choose **Bring your own key** and save your OpenRouter key.
-3. Confirm that the status badge shows your account tier.
+2. Paste your OpenRouter key under **Model inference** and choose **Save
+   inference settings**.
+3. Confirm that the status badge shows your account tier and that the OpenRouter
+   key badge is active.
 4. Open **Home**, choose an Excel, CSV, or Parquet file, and confirm that the
    preview and insights load. For multi-sheet Excel, see
    [Excel and workbooks](./EXCEL_AND_WORKBOOKS.md).

@@ -78,8 +78,8 @@ export function ModelSelect({ models, value, onChange, disabled = false }: Model
           role="tooltip"
         >
           <p className="dag-computation-graph-tooltip-body dag-computation-graph-tooltip-body--solo">
-            GPT-5.6 Luna offers the best balance of credit cost and code that runs
-            on the first try. DeepSeek V4 Flash uses the fewest credits per question
+            GPT-5.6 Luna offers the best balance of token cost and code that runs
+            on the first try. DeepSeek V4 Flash uses the fewest tokens per question
             but succeeds less often than Luna. Other models can handle more complex
             questions but tend to consume more tokens.
           </p>

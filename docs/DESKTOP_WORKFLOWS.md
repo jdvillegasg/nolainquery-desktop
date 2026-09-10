@@ -96,8 +96,10 @@ visual sequence of calculation operations and dependencies.
 
 When compilation succeeds, **Graph** appears beside **Code**. You can inspect
 nodes, auto-layout the graph, execute it locally, enter **Edit graph** mode,
-add operations, and save the graph as DAG JSON. Graph compilation is optional
-and can fail while the Pandas result succeeds.
+add operations, and save the graph as DAG JSON. Graph compilation is optional,
+can fail while the Pandas result succeeds, and adds model calls that bill
+OpenRouter. As a rule of thumb, enabling the graph uses roughly 10× more
+tokens than leaving it off.
 
 When an answer includes a visualization specification, a **Dashboard** evidence
 tab renders the resulting chart. This generated dashboard is distinct from the
@@ -139,7 +141,7 @@ locally persisted generation records. It shows:
 
 When the hosted service reports model time, the app uses it; otherwise it falls
 back to elapsed wall-clock time from question to answer. Older turns may show
-no token counts. These metrics stay in desktop local storage and are not a
-billing ledger.
+no token counts. These metrics stay in desktop local storage and are not an
+OpenRouter billing ledger.
 
 Keep [Troubleshooting](./TROUBLESHOOTING.md) nearby for visible recovery steps.

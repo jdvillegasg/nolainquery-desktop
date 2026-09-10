@@ -25,9 +25,27 @@ git push origin v0.1.0
 ```
 
 4. Wait for **Release** to finish on GitHub Actions.
-5. Open the generated GitHub Release, attach nothing extra, and check the
+5. Open the generated GitHub Release, attach nothing extra, and edit the release
    notes. Do not upload `.env` files or AppImages built on a machine that had
    a local Cloud API URL baked in.
+
+### Suggested release notes (OpenRouter-only desktop)
+
+Use or adapt this block when publishing a build that removes nolainquery
+credits from Settings:
+
+```markdown
+## What changed
+
+- **OpenRouter required:** model calls always use your OpenRouter API key; you pay OpenRouter directly.
+- **Settings simplified:** removed the credits balance display and the platform/credits inference mode.
+- **Upgrade:** open Settings → Model inference, paste your OpenRouter key, and save before asking queries.
+
+## Requirements
+
+- nolainquery API key from [nolainquery.com/account](https://nolainquery.com/account)
+- OpenRouter API key from [openrouter.ai/keys](https://openrouter.ai/keys)
+```
 
 To rebuild the same version, delete the GitHub Release **and** the tag, then
 push the tag again. Prefer a new patch version (`v0.1.1`) instead.

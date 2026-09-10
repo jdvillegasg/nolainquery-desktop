@@ -19,10 +19,14 @@ Every build path below ends here. You need:
 
 1. A **nolainquery API key** from [nolainquery.com/account](https://nolainquery.com/account)
    (sign in with Google → **Account → API Keys** → **Create key**).
-2. An **OpenRouter API key** from [openrouter.ai/keys](https://openrouter.ai/keys)
-   if you want free-to-you BYOK inference (you pay OpenRouter directly).
+2. An **OpenRouter API key** from [openrouter.ai/keys](https://openrouter.ai/keys).
+   Model calls bill your OpenRouter account directly.
 
 Keys stay on your device. Never commit them.
+
+**Upgrading from an older build:** the desktop is OpenRouter-only now. Open
+**Settings → Model inference**, paste your OpenRouter key, and choose **Save
+inference settings** before asking queries. The credits balance UI is gone.
 
 ## Downloads
 
@@ -148,8 +152,8 @@ cp desktop_app/frontend/.env.example desktop_app/frontend/.env
 
    ![Settings: paste and save the nolainquery API key](docs/images/settings-api-key.png)
 
-3. Under **Model inference**, choose **Your OpenRouter key**, paste the
-   OpenRouter key, → **Save inference settings**.
+3. Under **Model inference**, paste your OpenRouter key → **Save inference
+   settings**.
 
    ![Settings: bring-your-own OpenRouter key](docs/images/settings-byok.png)
 

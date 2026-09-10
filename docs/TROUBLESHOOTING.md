@@ -20,18 +20,32 @@ If the key was revoked, lost, or is still rejected, revoke it in
 **Account → API Keys**, create a new key, and save the replacement in the
 desktop. The portal shows a full key only at creation time.
 
-## BYOK / OpenRouter key problems
+## The OpenRouter key is missing or rejected
 
-**Visible symptom:** requests fail with authentication or model errors while
-**Bring your own key** is enabled.
+**Visible symptom:** Settings warns that no OpenRouter key is saved, Ask Queries
+says `No OpenRouter key configured`, or a request fails because model inference
+cannot run.
 
 1. Open **Settings → Model inference**.
-2. Confirm **Bring your own key** is selected and the OpenRouter key is saved.
-3. Verify the key is active at [openrouter.ai/keys](https://openrouter.ai/keys).
-4. Retry the request.
+2. Paste an active key from [openrouter.ai/keys](https://openrouter.ai/keys).
+3. Choose **Save inference settings**.
+4. Confirm the badge shows that your OpenRouter key is active, then retry.
 
-If BYOK is disabled on the server, the Settings panel shows that bring-your-own-key
-is unavailable. Switch back to platform inference or contact support.
+If the key is valid but calls still fail, confirm your OpenRouter account has
+remaining balance or credits. Model usage is billed to OpenRouter, not to
+nolainquery.
+
+If BYOK is disabled on the server, the Settings panel shows that
+bring-your-own-key is unavailable. Contact support.
+
+## The service returns 402
+
+**Visible symptom:** the hosted service returns HTTP 402 with a message that the
+key is not linked to a portal account.
+
+Sign in at [nolainquery.com](https://nolainquery.com), create the key under
+your own **Account → API Keys**, and save that key in Settings. Unlinked keys
+cannot use the hosted service.
 
 ## The request is unsupported or out of scope
 
@@ -126,8 +140,9 @@ each term and submit the choices. nolainquery sends those meanings with the resu
 request and uses them when generating the calculation.
 
 If no option matches, choose the rephrase action and rewrite the original
-question with an explicit definition. For example, change “top customers” to
-“the five customers with the highest total revenue.”
+question with an explicit definition. For example, change "top customers" to
+"the five customers with the highest total revenue." The clarified request may
+make additional model calls through OpenRouter.
 
 ## Local execution fails and repair runs out
 
@@ -153,8 +168,9 @@ Use the narrowest matching action:
 5. If Pandas produced a valid answer but only graph compilation failed, turn
    off **Computation graph** and retry without that optional artifact.
 
-Repeating the identical request many times is less useful than changing the
-column name, scope, or optional graph setting.
+Completed model calls from failed and repaired attempts can still bill
+OpenRouter. Repeating the identical request many times is less useful than
+changing the column name, scope, or optional graph setting.
 
 ## The selected file does not appear
 

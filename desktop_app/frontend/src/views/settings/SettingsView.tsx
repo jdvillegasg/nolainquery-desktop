@@ -23,45 +23,6 @@ export interface SettingsViewProps {
   queryThreads?: QueryThread[];
 }
 
-function CreditsBalance({
-  validating,
-  status,
-}: {
-  validating: boolean;
-  status: ApiKeyStatus | null;
-}) {
-  if (!status || status.credit_balance == null) return null;
-
-  return (
-    <div
-      className={cn(
-        "rounded-[var(--radius-md)] border px-4 py-3 transition-opacity duration-200",
-        status.can_consume
-          ? "border-emerald-200 bg-emerald-50/80"
-          : "border-amber-200 bg-amber-50/80",
-        validating && "opacity-60",
-      )}
-    >
-      <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)]">
-        Credits remaining
-      </p>
-      <p
-        className={cn(
-          "mt-1 font-semibold tabular-nums tracking-tight",
-          status.can_consume ? "text-3xl text-emerald-900" : "text-3xl text-amber-900",
-        )}
-      >
-        {status.can_consume ? status.credit_balance : 0}
-      </p>
-      <p className="mt-1 text-xs text-[var(--color-muted-foreground)]">
-        {status.can_consume
-          ? `${status.credit_balance === 1 ? "credit" : "credits"} · ${status.tier} tier`
-          : `No credits left · ${status.tier} tier — subscribe or top up at the portal`}
-      </p>
-    </div>
-  );
-}
-
 function ApiKeyStatusBadge({
   validating,
   status,
@@ -85,8 +46,6 @@ function ApiKeyStatusBadge({
   }
 
   if (status) {
-    if (status.credit_balance != null) return null;
-
     return (
       <Badge variant="success" className="gap-1.5">
         <span className="size-1.5 rounded-full bg-emerald-500" />
@@ -203,8 +162,6 @@ export default function SettingsView({
                   {apiKeyVisible ? <EyeOff strokeWidth={1.75} /> : <Eye strokeWidth={1.75} />}
                 </Button>
               </div>
-
-              <CreditsBalance validating={apiKeyValidating} status={apiKeyStatus} />
 
               <ApiKeyStatusBadge
                 validating={apiKeyValidating}

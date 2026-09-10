@@ -68,7 +68,7 @@ export function ComputationGraphToggle({
             trace where an answer came from.
           </p>
           <p className="dag-computation-graph-tooltip-foot">
-            As a rule of thumb, enabling this uses on average about 10× more credits than
+            As a rule of thumb, enabling this uses on average about 10× more tokens than
             leaving it off.
           </p>
         </div>,

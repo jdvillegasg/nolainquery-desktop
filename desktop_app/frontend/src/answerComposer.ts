@@ -459,8 +459,11 @@ export function translateError(raw: string | null | undefined): string {
   if (lower.includes('x-api-key') || lower.includes('api key')) {
     return 'Your API key is missing or invalid. Open Settings and paste a valid Nolain API key.';
   }
-  if (lower.includes('402') || lower.includes('no credits remaining') || lower.includes('not linked to a portal')) {
-    return 'You have no credits remaining. Open Settings and top up at the portal, then try again.';
+  if (lower.includes('402') || lower.includes('not linked to a portal')) {
+    return 'Your nolainquery API key is not linked to a portal account. Sign in at nolainquery.com, create a key under Account → API Keys, and save it in Settings.';
+  }
+  if (lower.includes('x-llm-credential') || lower.includes('openrouter')) {
+    return 'Your OpenRouter key is missing or invalid. Open Settings, paste a valid OpenRouter key, and save inference settings.';
   }
   if (lower.includes('429') || lower.includes('rate limit')) {
     return 'The service is busy right now. Meta questions about your columns still work; try again in a moment.';
