@@ -1,0 +1,141 @@
+{
+  "name": "Revenue variance between days with more than 100 invoices vs low-volume days.",
+  "version": "1",
+  "dag": {
+    "graph_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "nodes": [
+      {
+        "id": "node_0",
+        "op": "filter_extract",
+        "params": {
+          "column": "Quantity",
+          "condition": null
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_1",
+        "op": "filter_extract",
+        "params": {
+          "column": "Price",
+          "condition": null
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_2",
+        "op": "multiply",
+        "params": {},
+        "inputs": [
+          "node_0",
+          "node_1"
+        ]
+      },
+      {
+        "id": "node_3",
+        "op": "filter_extract",
+        "params": {
+          "column": "InvoiceDate",
+          "condition": null
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_4",
+        "op": "to_datetime",
+        "params": {},
+        "inputs": [
+          "node_3"
+        ]
+      },
+      {
+        "id": "node_5",
+        "op": "truncate_to",
+        "params": {
+          "unit": "day"
+        },
+        "inputs": [
+          "node_4"
+        ]
+      },
+      {
+        "id": "node_6",
+        "op": "groupby_agg",
+        "params": {
+          "groupby_columns": [
+            "node_5"
+          ],
+          "agg_column": "Invoice",
+          "agg_function": "nunique"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_7",
+        "op": "groupby_agg",
+        "params": {
+          "groupby_columns": [
+            "node_5"
+          ],
+          "agg_column": "node_2",
+          "agg_function": "sum"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_8",
+        "op": "load_constant",
+        "params": {
+          "value": 100
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_9",
+        "op": "gt",
+        "params": {},
+        "inputs": [
+          "node_6",
+          "node_8"
+        ]
+      },
+      {
+        "id": "node_10",
+        "op": "mean_if",
+        "params": {},
+        "inputs": [
+          "node_7",
+          "node_9"
+        ]
+      },
+      {
+        "id": "node_11",
+        "op": "logical_not",
+        "params": {},
+        "inputs": [
+          "node_9"
+        ]
+      },
+      {
+        "id": "node_12",
+        "op": "mean_if",
+        "params": {},
+        "inputs": [
+          "node_7",
+          "node_11"
+        ]
+      },
+      {
+        "id": "node_13",
+        "op": "subtract",
+        "params": {},
+        "inputs": [
+          "node_10",
+          "node_12"
+        ]
+      }
+    ],
+    "output_node": "node_13"
+  },
+  "python_code": "# Calculate revenue per invoice (Quantity * Price)\ndf['Revenue'] = df['Quantity'] * df['Price']\n\n# Extract date from InvoiceDate\ndf['Date'] = pd.to_datetime(df['InvoiceDate']).dt.date\n\n# Group by date to get daily invoice count and total revenue\ndaily_stats = df.groupby('Date').agg(\n    invoice_count=('Invoice', 'nunique'),\n    total_revenue=('Revenue', 'sum')\n).reset_index()\n\n# Classify days as high-volume (>100 invoices) or low-volume\ndaily_stats['volume_category'] = daily_stats['invoice_count'].apply(\n    lambda x: 'high_volume' if x > 100 else 'low_volume'\n)\n\n# Calculate average revenue per day for each category\nrevenue_by_volume = daily_stats.groupby('volume_category')['total_revenue'].mean().reset_index()\n\n# Compute the variance (difference) between high-volume and low-volume days\nhigh_vol_revenue = revenue_by_volume.loc[revenue_by_volume['volume_category'] == 'high_volume', 'total_revenue'].values\nlow_vol_revenue = revenue_by_volume.loc[revenue_by_volume['volume_category'] == 'low_volume', 'total_revenue'].values\n\nif len(high_vol_revenue) > 0 and len(low_vol_revenue) > 0:\n    result = high_vol_revenue[0] - low_vol_revenue[0]\nelse:\n    result = None"
+}

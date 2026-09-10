@@ -1,0 +1,32 @@
+{
+  "name": "How does the average price of products purchased by a customer change over their lifetime?",
+  "version": "1",
+  "dag": {
+    "graph_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "nodes": [
+      {
+        "id": "node_0",
+        "op": "groupby_agg",
+        "params": {
+          "groupby_columns": [
+            "Customer ID",
+            "Invoice"
+          ],
+          "agg_column": "Price",
+          "agg_function": "mean"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_1",
+        "op": "mean",
+        "params": {},
+        "inputs": [
+          "node_0"
+        ]
+      }
+    ],
+    "output_node": "node_1"
+  },
+  "python_code": "# Filter out rows with missing Customer ID and negative/zero Quantity (returns/cancellations)\ndf_clean = df.dropna(subset=['Customer ID']).copy()\ndf_clean = df_clean[df_clean['Quantity'] > 0].copy()\n\n# Convert InvoiceDate to datetime\ndf_clean['InvoiceDate'] = pd.to_datetime(df_clean['InvoiceDate'])\n\n# Sort by Customer ID and InvoiceDate to establish purchase order\ndf_clean = df_clean.sort_values(['Customer ID', 'InvoiceDate']).reset_index(drop=True)\n\n# For each customer, assign a purchase sequence number based on invoice date\n# Group by Customer ID and Invoice to get per-invoice average price\ninvoice_avg_price = df_clean.groupby(['Customer ID', 'Invoice'])['Price'].mean().reset_index()\ninvoice_avg_price = invoice_avg_price.rename(columns={'Price': 'AvgInvoicePrice'})\n\n# Get the first invoice date per customer-invoice to order purchases\ninvoice_dates = df_clean[['Customer ID', 'Invoice', 'InvoiceDate']].drop_duplicates()\ninvoice_avg_price = invoice_avg_price.merge(invoice_dates, on=['Customer ID', 'Invoice'])\n\n# Sort by customer and date, then assign purchase number\ninvoice_avg_price = invoice_avg_price.sort_values(['Customer ID', 'InvoiceDate']).reset_index(drop=True)\ninvoice_avg_price['PurchaseNumber'] = invoice_avg_price.groupby('Customer ID').cumcount() + 1\n\n# Calculate average price per purchase number across all customers\nresult = invoice_avg_price.groupby('PurchaseNumber')['AvgInvoicePrice'].mean().reset_index()\nresult = result.rename(columns={'AvgInvoicePrice': 'AveragePrice'})"
+}

@@ -1,0 +1,149 @@
+{
+  "name": "Average basket diversity (distinct StockCodes) over time for top 100 customers.",
+  "version": "1",
+  "dag": {
+    "graph_id": "b7c8d9e0-f1a2-3456-bcde-f01234567890",
+    "nodes": [
+      {
+        "id": "node_0",
+        "op": "groupby_agg",
+        "params": {
+          "groupby_column": "Customer ID",
+          "agg_column": "Price",
+          "agg_function": "sum"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_1",
+        "op": "nlargest",
+        "params": {
+          "n": 100
+        },
+        "inputs": [
+          "node_0"
+        ]
+      },
+      {
+        "id": "node_2",
+        "op": "get_index",
+        "params": {},
+        "inputs": [
+          "node_1"
+        ]
+      },
+      {
+        "id": "node_3",
+        "op": "filter_extract",
+        "params": {
+          "column": "Customer ID"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_4",
+        "op": "isin_from_node",
+        "params": {},
+        "inputs": [
+          "node_3",
+          "node_2"
+        ]
+      },
+      {
+        "id": "node_5",
+        "op": "filter_extract",
+        "params": {
+          "column": "InvoiceDate"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_6",
+        "op": "to_datetime",
+        "params": {},
+        "inputs": [
+          "node_5"
+        ]
+      },
+      {
+        "id": "node_7",
+        "op": "truncate_to",
+        "params": {
+          "unit": "day"
+        },
+        "inputs": [
+          "node_6"
+        ]
+      },
+      {
+        "id": "node_8",
+        "op": "filter_extract",
+        "params": {
+          "column": "Invoice"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_9",
+        "op": "filter_extract",
+        "params": {
+          "column": "StockCode"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_10",
+        "op": "index",
+        "params": {
+          "indices": "node_4"
+        },
+        "inputs": [
+          "node_7"
+        ]
+      },
+      {
+        "id": "node_11",
+        "op": "index",
+        "params": {
+          "indices": "node_4"
+        },
+        "inputs": [
+          "node_8"
+        ]
+      },
+      {
+        "id": "node_12",
+        "op": "index",
+        "params": {
+          "indices": "node_4"
+        },
+        "inputs": [
+          "node_9"
+        ]
+      },
+      {
+        "id": "node_13",
+        "op": "groupby_agg",
+        "params": {
+          "groupby_columns": [
+            "node_10",
+            "node_11"
+          ],
+          "agg_column": "node_12",
+          "agg_function": "nunique"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_14",
+        "op": "mean",
+        "params": {},
+        "inputs": [
+          "node_13"
+        ]
+      }
+    ],
+    "output_node": "node_14"
+  },
+  "python_code": "# Identify top 100 customers by total spending\ncustomer_spending = df.groupby('Customer ID')['Price'].sum().reset_index()\ncustomer_spending.columns = ['Customer ID', 'TotalSpending']\ntop_100_customers = customer_spending.nlargest(100, 'TotalSpending')['Customer ID'].tolist()\n\n# Filter data to only top 100 customers\ntop_customers_df = df[df['Customer ID'].isin(top_100_customers)].copy()\n\n# Convert InvoiceDate to datetime\ntop_customers_df['InvoiceDate'] = pd.to_datetime(top_customers_df['InvoiceDate'])\n\n# Extract date (without time) for grouping over time\ntop_customers_df['Date'] = top_customers_df['InvoiceDate'].dt.date\n\n# Calculate distinct StockCodes per invoice per date\nbasket_diversity = top_customers_df.groupby(['Date', 'Invoice'])['StockCode'].nunique().reset_index()\nbasket_diversity.columns = ['Date', 'Invoice', 'DistinctStockCodes']\n\n# Average basket diversity per date\nresult = basket_diversity.groupby('Date')['DistinctStockCodes'].mean().reset_index()\nresult.columns = ['Date', 'AvgBasketDiversity']"
+}

@@ -1,0 +1,122 @@
+{
+  "name": "Price elasticity of demand for StockCode 79323P.",
+  "version": "1",
+  "dag": {
+    "graph_id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+    "nodes": [
+      {
+        "id": "node_0",
+        "op": "filter_extract",
+        "params": {
+          "column": "Quantity",
+          "condition": "StockCode == '79323P' & Quantity > 0 & Price > 0"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_1",
+        "op": "filter_extract",
+        "params": {
+          "column": "Price",
+          "condition": "StockCode == '79323P' & Quantity > 0 & Price > 0"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_2",
+        "op": "log",
+        "params": {},
+        "inputs": [
+          "node_0"
+        ]
+      },
+      {
+        "id": "node_3",
+        "op": "log",
+        "params": {},
+        "inputs": [
+          "node_1"
+        ]
+      },
+      {
+        "id": "node_4",
+        "op": "mean",
+        "params": {},
+        "inputs": [
+          "node_2"
+        ]
+      },
+      {
+        "id": "node_5",
+        "op": "mean",
+        "params": {},
+        "inputs": [
+          "node_3"
+        ]
+      },
+      {
+        "id": "node_6",
+        "op": "subtract",
+        "params": {},
+        "inputs": [
+          "node_2",
+          "node_4"
+        ]
+      },
+      {
+        "id": "node_7",
+        "op": "subtract",
+        "params": {},
+        "inputs": [
+          "node_3",
+          "node_5"
+        ]
+      },
+      {
+        "id": "node_8",
+        "op": "multiply",
+        "params": {},
+        "inputs": [
+          "node_6",
+          "node_7"
+        ]
+      },
+      {
+        "id": "node_9",
+        "op": "sum",
+        "params": {},
+        "inputs": [
+          "node_8"
+        ]
+      },
+      {
+        "id": "node_10",
+        "op": "multiply",
+        "params": {},
+        "inputs": [
+          "node_7",
+          "node_7"
+        ]
+      },
+      {
+        "id": "node_11",
+        "op": "sum",
+        "params": {},
+        "inputs": [
+          "node_10"
+        ]
+      },
+      {
+        "id": "node_12",
+        "op": "divide",
+        "params": {},
+        "inputs": [
+          "node_9",
+          "node_11"
+        ]
+      }
+    ],
+    "output_node": "node_12"
+  },
+  "python_code": "# Filter data for the specific StockCode\nstock_data = df[df['StockCode'] == '79323P'].copy()\n\n# Check if we have enough data to estimate price elasticity\nif stock_data.empty:\n    result = None\n    # Comment: No data available for StockCode 79323P\nelse:\n    # Remove rows with missing or non-positive Quantity and Price\n    stock_data = stock_data[(stock_data['Quantity'] > 0) & (stock_data['Price'] > 0)].copy()\n    \n    if stock_data.empty:\n        result = None\n        # Comment: No valid transactions with positive quantity and price for StockCode 79323P\n    else:\n        # Calculate log-transformed variables for elasticity estimation\n        stock_data['log_quantity'] = np.log(stock_data['Quantity'])\n        stock_data['log_price'] = np.log(stock_data['Price'])\n        \n        # Simple linear regression: log(quantity) = intercept + elasticity * log(price)\n        # Using numpy polyfit for slope (elasticity)\n        coefficients = np.polyfit(stock_data['log_price'], stock_data['log_quantity'], 1)\n        elasticity = coefficients[0]\n        \n        # Store the result as a dictionary with summary statistics\n        result = {\n            'stock_code': '79323P',\n            'price_elasticity': elasticity,\n            'n_observations': len(stock_data),\n            'mean_price': stock_data['Price'].mean(),\n            'mean_quantity': stock_data['Quantity'].mean()\n        }"
+}

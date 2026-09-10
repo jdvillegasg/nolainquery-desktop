@@ -1,0 +1,56 @@
+@import "tailwindcss/theme" layer(theme);
+@import "tailwindcss/utilities" layer(utilities);
+
+@theme {
+  /* Light neutral workspace */
+  --color-background: #fefefe;
+  --color-foreground: #1c1917;
+  --color-muted: #fafafa;
+  --color-muted-foreground: #78716c;
+  --color-popover: #ffffff;
+  --color-popover-foreground: #1c1917;
+  --color-border: #ebebeb;
+  --color-input: #d4d4d4;
+  --color-ring: #a3a3a3;
+  --color-accent: #fafafa;
+  --color-accent-foreground: #1c1917;
+  --color-primary: #1c1917;
+  --color-primary-foreground: #fefefe;
+  --color-secondary: #ffffff;
+  --color-secondary-foreground: #44403c;
+  --color-destructive: #dc2626;
+  --color-card: #ffffff;
+  --color-card-foreground: #1c1917;
+  --radius-sm: 5px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --font-nav: "Inter", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+}
+
+/* Unlayered — must beat index.css * { padding: 0 } which outranks layered utilities */
+.nolain-select-trigger {
+  padding: 4px 10px;
+}
+
+[data-radix-select-viewport] {
+  padding: 6px;
+}
+
+[data-radix-select-content] [role="option"] {
+  padding: 6px 28px 6px 12px;
+}
+
+.main-content--home,
+.main-content--query,
+.main-content--dashboard,
+.main-content--pinned,
+.main-content--settings {
+  background: var(--color-background) !important;
+}
+
+.main-content--query {
+  padding: 0 !important;
+  overflow: hidden !important;
+  gap: 0 !important;
+}

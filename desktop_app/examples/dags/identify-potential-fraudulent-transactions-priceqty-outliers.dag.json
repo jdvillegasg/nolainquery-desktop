@@ -1,0 +1,212 @@
+{
+  "name": "Identify potential fraudulent transactions (price/qty outliers).",
+  "version": "1",
+  "dag": {
+    "graph_id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+    "nodes": [
+      {
+        "id": "node_0",
+        "op": "filter_extract",
+        "params": {
+          "column": "Price",
+          "condition": null
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_1",
+        "op": "filter_extract",
+        "params": {
+          "column": "Quantity",
+          "condition": null
+        },
+        "inputs": []
+      },
+      {
+        "id": "load_constant_1.5",
+        "op": "load_constant",
+        "params": {
+          "value": 1.5
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_2",
+        "op": "quantile",
+        "params": {
+          "q": 0.25
+        },
+        "inputs": [
+          "node_0"
+        ]
+      },
+      {
+        "id": "node_3",
+        "op": "quantile",
+        "params": {
+          "q": 0.75
+        },
+        "inputs": [
+          "node_0"
+        ]
+      },
+      {
+        "id": "node_4",
+        "op": "subtract",
+        "params": {},
+        "inputs": [
+          "node_3",
+          "node_2"
+        ]
+      },
+      {
+        "id": "node_5",
+        "op": "multiply",
+        "params": {},
+        "inputs": [
+          "node_4",
+          "load_constant_1.5"
+        ]
+      },
+      {
+        "id": "node_6",
+        "op": "subtract",
+        "params": {},
+        "inputs": [
+          "node_2",
+          "node_5"
+        ]
+      },
+      {
+        "id": "node_7",
+        "op": "add",
+        "params": {},
+        "inputs": [
+          "node_3",
+          "node_5"
+        ]
+      },
+      {
+        "id": "node_8",
+        "op": "lt",
+        "params": {},
+        "inputs": [
+          "node_0",
+          "node_6"
+        ]
+      },
+      {
+        "id": "node_9",
+        "op": "gt",
+        "params": {},
+        "inputs": [
+          "node_0",
+          "node_7"
+        ]
+      },
+      {
+        "id": "node_10",
+        "op": "logical_or",
+        "params": {},
+        "inputs": [
+          "node_8",
+          "node_9"
+        ]
+      },
+      {
+        "id": "node_11",
+        "op": "quantile",
+        "params": {
+          "q": 0.25
+        },
+        "inputs": [
+          "node_1"
+        ]
+      },
+      {
+        "id": "node_12",
+        "op": "quantile",
+        "params": {
+          "q": 0.75
+        },
+        "inputs": [
+          "node_1"
+        ]
+      },
+      {
+        "id": "node_13",
+        "op": "subtract",
+        "params": {},
+        "inputs": [
+          "node_12",
+          "node_11"
+        ]
+      },
+      {
+        "id": "node_14",
+        "op": "multiply",
+        "params": {},
+        "inputs": [
+          "node_13",
+          "load_constant_1.5"
+        ]
+      },
+      {
+        "id": "node_15",
+        "op": "subtract",
+        "params": {},
+        "inputs": [
+          "node_11",
+          "node_14"
+        ]
+      },
+      {
+        "id": "node_16",
+        "op": "add",
+        "params": {},
+        "inputs": [
+          "node_12",
+          "node_14"
+        ]
+      },
+      {
+        "id": "node_17",
+        "op": "lt",
+        "params": {},
+        "inputs": [
+          "node_1",
+          "node_15"
+        ]
+      },
+      {
+        "id": "node_18",
+        "op": "gt",
+        "params": {},
+        "inputs": [
+          "node_1",
+          "node_16"
+        ]
+      },
+      {
+        "id": "node_19",
+        "op": "logical_or",
+        "params": {},
+        "inputs": [
+          "node_17",
+          "node_18"
+        ]
+      },
+      {
+        "id": "node_20",
+        "op": "logical_or",
+        "params": {},
+        "inputs": [
+          "node_10",
+          "node_19"
+        ]
+      }
+    ],
+    "output_node": "node_20"
+  },
+  "python_code": "# Identify potential fraudulent transactions (price/qty outliers)\n# Approach: Flag transactions where Price or Quantity are extreme outliers using IQR method\n\n# Calculate unit price (Price per item) - already have Price column\n# Use IQR to detect outliers in Price and Quantity\n\n# Calculate Q1, Q3, and IQR for Price\nprice_q1 = df['Price'].quantile(0.25)\nprice_q3 = df['Price'].quantile(0.75)\nprice_iqr = price_q3 - price_q1\nprice_lower = price_q1 - 1.5 * price_iqr\nprice_upper = price_q3 + 1.5 * price_iqr\n\n# Calculate Q1, Q3, and IQR for Quantity\nqty_q1 = df['Quantity'].quantile(0.25)\nqty_q3 = df['Quantity'].quantile(0.75)\nqty_iqr = qty_q3 - qty_q1\nqty_lower = qty_q1 - 1.5 * qty_iqr\nqty_upper = qty_q3 + 1.5 * qty_iqr\n\n# Flag outliers\ndf_temp = df.copy()\ndf_temp['price_outlier'] = (df_temp['Price'] < price_lower) | (df_temp['Price'] > price_upper)\ndf_temp['qty_outlier'] = (df_temp['Quantity'] < qty_lower) | (df_temp['Quantity'] > qty_upper)\ndf_temp['fraud_flag'] = df_temp['price_outlier'] | df_temp['qty_outlier']\n\n# Filter to potential fraudulent transactions\nresult = df_temp[df_temp['fraud_flag']].copy()\n\n# Select relevant columns for output\nresult = result[['Invoice', 'StockCode', 'Description', 'Quantity', 'Price', 'Customer ID', 'Country', 'price_outlier', 'qty_outlier']].reset_index(drop=True)"
+}

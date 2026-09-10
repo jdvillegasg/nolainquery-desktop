@@ -1,0 +1,112 @@
+{
+  "name": "Identify 'dormant' customers who haven't purchased since July 2010.",
+  "version": "1",
+  "dag": {
+    "graph_id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+    "nodes": [
+      {
+        "id": "node_0",
+        "op": "filter_extract",
+        "params": {
+          "column": "InvoiceDate",
+          "condition": null
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_1",
+        "op": "to_datetime",
+        "params": {
+          "format": "%Y-%m-%d %H:%M:%S"
+        },
+        "inputs": [
+          "node_0"
+        ]
+      },
+      {
+        "id": "node_2",
+        "op": "filter_extract",
+        "params": {
+          "column": "Customer ID",
+          "condition": null
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_3",
+        "op": "isnan",
+        "params": {},
+        "inputs": [
+          "node_2"
+        ]
+      },
+      {
+        "id": "node_4",
+        "op": "logical_not",
+        "params": {},
+        "inputs": [
+          "node_3"
+        ]
+      },
+      {
+        "id": "node_5",
+        "op": "index",
+        "params": {
+          "indices": "node_4"
+        },
+        "inputs": [
+          "node_1"
+        ]
+      },
+      {
+        "id": "node_6",
+        "op": "groupby_agg",
+        "params": {
+          "groupby_column": "Customer ID",
+          "agg_column": "node_5",
+          "agg_function": "max"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_7",
+        "op": "load_constant",
+        "params": {
+          "value": "2010-07-31 23:59:59"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_8",
+        "op": "to_datetime",
+        "params": {
+          "format": "%Y-%m-%d %H:%M:%S"
+        },
+        "inputs": [
+          "node_7"
+        ]
+      },
+      {
+        "id": "node_9",
+        "op": "le",
+        "params": {},
+        "inputs": [
+          "node_6",
+          "node_8"
+        ]
+      },
+      {
+        "id": "node_10",
+        "op": "index",
+        "params": {
+          "indices": "node_9"
+        },
+        "inputs": [
+          "node_6"
+        ]
+      }
+    ],
+    "output_node": "node_10"
+  },
+  "python_code": "# Identify dormant customers who haven't purchased since July 2010\n# First, convert InvoiceDate to datetime\ndf['InvoiceDate'] = pd.to_datetime(df['InvoiceDate'])\n\n# Filter out rows with missing Customer ID\ndf_valid = df.dropna(subset=['Customer ID']).copy()\n\n# Find the last purchase date for each customer\nlast_purchase = df_valid.groupby('Customer ID')['InvoiceDate'].max().reset_index()\nlast_purchase.columns = ['Customer ID', 'LastPurchaseDate']\n\n# Define the cutoff date (end of July 2010)\ncutoff_date = pd.Timestamp('2010-07-31 23:59:59')\n\n# Identify dormant customers (last purchase on or before July 2010)\ndormant_customers = last_purchase[last_purchase['LastPurchaseDate'] <= cutoff_date]\n\n# Store the result as a DataFrame with Customer ID and their last purchase date\nresult = dormant_customers[['Customer ID', 'LastPurchaseDate']].copy()"
+}

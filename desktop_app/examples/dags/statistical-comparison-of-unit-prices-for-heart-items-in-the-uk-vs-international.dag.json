@@ -1,0 +1,30 @@
+{
+  "name": "Statistical comparison of unit prices for 'HEART' items in the UK vs international.",
+  "version": "1",
+  "dag": {
+    "graph_id": "graph_002",
+    "nodes": [
+      {
+        "id": "node_0",
+        "op": "filter_extract",
+        "params": {
+          "column": "Price",
+          "condition": "Description.str.contains('HEART', case=False, na=False)"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_1",
+        "op": "groupby_agg",
+        "params": {
+          "groupby_column": "Country",
+          "agg_column": "node_0",
+          "agg_function": "mean"
+        },
+        "inputs": []
+      }
+    ],
+    "output_node": "node_1"
+  },
+  "python_code": "# Filter for 'HEART' items (case-insensitive) in Description\nheart_items = df[df['Description'].str.contains('HEART', case=False, na=False)].copy()\n\n# Create a grouping: UK vs International\nheart_items['region'] = heart_items['Country'].apply(lambda x: 'UK' if x == 'United Kingdom' else 'International')\n\n# Statistical comparison of unit prices (Price column)\nresult = heart_items.groupby('region')['Price'].agg(['count', 'mean', 'std', 'min', 'median', 'max']).reset_index()"
+}

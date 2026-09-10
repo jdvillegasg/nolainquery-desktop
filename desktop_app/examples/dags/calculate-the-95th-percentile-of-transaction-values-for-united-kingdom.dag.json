@@ -1,0 +1,48 @@
+{
+  "name": "Calculate the 95th percentile of transaction values for United Kingdom.",
+  "version": "1",
+  "dag": {
+    "graph_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "nodes": [
+      {
+        "id": "node_0",
+        "op": "filter_extract",
+        "params": {
+          "column": "Quantity",
+          "condition": "Country == 'United Kingdom'"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_1",
+        "op": "filter_extract",
+        "params": {
+          "column": "Price",
+          "condition": "Country == 'United Kingdom'"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_2",
+        "op": "multiply",
+        "params": {},
+        "inputs": [
+          "node_0",
+          "node_1"
+        ]
+      },
+      {
+        "id": "node_3",
+        "op": "quantile",
+        "params": {
+          "q": 0.95
+        },
+        "inputs": [
+          "node_2"
+        ]
+      }
+    ],
+    "output_node": "node_3"
+  },
+  "python_code": "uk_df = df[df['Country'] == 'United Kingdom'].copy()\nuk_df['TransactionValue'] = uk_df['Quantity'] * uk_df['Price']\nresult = uk_df['TransactionValue'].quantile(0.95)"
+}

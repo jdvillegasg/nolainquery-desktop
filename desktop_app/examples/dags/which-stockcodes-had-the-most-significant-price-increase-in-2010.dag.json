@@ -1,0 +1,69 @@
+{
+  "name": "Which StockCodes had the most significant price increase in 2010?",
+  "version": "1",
+  "dag": {
+    "graph_id": "b7c8d9e0-f1a2-3456-bcde-f01234567890",
+    "nodes": [
+      {
+        "id": "node_0",
+        "op": "filter_extract",
+        "params": {
+          "column": "Price",
+          "condition": "InvoiceDate.str.startswith('2010')"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_1",
+        "op": "groupby_agg",
+        "params": {
+          "groupby_column": "StockCode",
+          "agg_column": "node_0",
+          "agg_function": "first"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_2",
+        "op": "groupby_agg",
+        "params": {
+          "groupby_column": "StockCode",
+          "agg_column": "node_0",
+          "agg_function": "last"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_3",
+        "op": "subtract",
+        "params": {},
+        "inputs": [
+          "node_2",
+          "node_1"
+        ]
+      },
+      {
+        "id": "node_4",
+        "op": "sort_values",
+        "params": {
+          "ascending": false
+        },
+        "inputs": [
+          "node_3"
+        ]
+      },
+      {
+        "id": "node_5",
+        "op": "head",
+        "params": {
+          "n": 10
+        },
+        "inputs": [
+          "node_4"
+        ]
+      }
+    ],
+    "output_node": "node_5"
+  },
+  "python_code": "# Filter data for 2010\ndf_2010 = df[df['InvoiceDate'].str.startswith('2010')].copy()\n\n# For each StockCode, find the first and last price in 2010\nprice_change = df_2010.groupby('StockCode')['Price'].agg(['first', 'last']).reset_index()\n\n# Calculate price change (last - first)\nprice_change['price_change'] = price_change['last'] - price_change['first']\n\n# Sort by price change descending to find most significant increase\nprice_change_sorted = price_change.sort_values('price_change', ascending=False)\n\n# Get the StockCodes with the most significant price increase\nresult = price_change_sorted[['StockCode', 'price_change']].head(10)"
+}

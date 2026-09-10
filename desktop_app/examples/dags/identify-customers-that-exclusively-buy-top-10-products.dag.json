@@ -1,0 +1,137 @@
+{
+  "name": "Identify customers that exclusively buy top 10 products.",
+  "version": "1",
+  "dag": {
+    "graph_id": "graph_003",
+    "nodes": [
+      {
+        "id": "node_0",
+        "op": "filter_extract",
+        "params": {
+          "column": "Quantity"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_1",
+        "op": "groupby_agg",
+        "params": {
+          "groupby_column": "StockCode",
+          "agg_column": "node_0",
+          "agg_function": "sum"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_2",
+        "op": "nlargest",
+        "params": {
+          "n": 10
+        },
+        "inputs": [
+          "node_1"
+        ]
+      },
+      {
+        "id": "node_3",
+        "op": "get_index",
+        "params": {},
+        "inputs": [
+          "node_2"
+        ]
+      },
+      {
+        "id": "node_4",
+        "op": "filter_extract",
+        "params": {
+          "column": "StockCode"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_5",
+        "op": "isin_from_node",
+        "params": {},
+        "inputs": [
+          "node_4",
+          "node_3"
+        ]
+      },
+      {
+        "id": "node_6",
+        "op": "filter_extract",
+        "params": {
+          "column": "Customer ID"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_7",
+        "op": "filter_extract",
+        "params": {
+          "column": "StockCode"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_8",
+        "op": "groupby_agg",
+        "params": {
+          "groupby_column": "Customer ID",
+          "agg_column": "node_7",
+          "agg_function": "nunique"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_9",
+        "op": "groupby_agg",
+        "params": {
+          "groupby_column": "Customer ID",
+          "agg_column": "node_5",
+          "agg_function": "sum"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_10",
+        "op": "groupby_agg",
+        "params": {
+          "groupby_column": "Customer ID",
+          "agg_column": "node_6",
+          "agg_function": "count"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_11",
+        "op": "eq",
+        "params": {},
+        "inputs": [
+          "node_8",
+          "node_9"
+        ]
+      },
+      {
+        "id": "node_12",
+        "op": "index",
+        "params": {
+          "indices": "node_11"
+        },
+        "inputs": [
+          "node_10"
+        ]
+      },
+      {
+        "id": "node_13",
+        "op": "get_index",
+        "params": {},
+        "inputs": [
+          "node_12"
+        ]
+      }
+    ],
+    "output_node": "node_13"
+  },
+  "python_code": "# Step 1: Identify top 10 products based on total quantity sold\ntop_products = (\n    df.groupby('StockCode')['Quantity']\n    .sum()\n    .nlargest(10)\n    .index\n)\n\n# Step 2: For each customer, get the set of products they purchased\ncustomer_products = (\n    df.dropna(subset=['Customer ID'])\n    .groupby('Customer ID')['StockCode']\n    .apply(set)\n    .reset_index()\n)\ncustomer_products.columns = ['Customer ID', 'purchased_products']\n\n# Step 3: Filter customers whose purchased products are a subset of top products\n# (i.e., they only buy top products, possibly not all of them)\ncustomer_products['only_top'] = customer_products['purchased_products'].apply(\n    lambda products: products.issubset(top_products) and len(products) > 0\n)\n\n# Step 4: Get the list of customer IDs that exclusively buy top products\nresult = customer_products.loc[customer_products['only_top'], 'Customer ID'].tolist()"
+}

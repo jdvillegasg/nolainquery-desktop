@@ -1,0 +1,181 @@
+{
+  "name": "Z-score of revenue for Netherlands relative to quarterly average.",
+  "version": "1",
+  "dag": {
+    "graph_id": "d4e5f6a7-b8c9-0123-cdef-123456789012",
+    "nodes": [
+      {
+        "id": "node_0",
+        "op": "filter_extract",
+        "params": {
+          "column": "Quantity",
+          "condition": null
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_1",
+        "op": "filter_extract",
+        "params": {
+          "column": "Price",
+          "condition": null
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_2",
+        "op": "multiply",
+        "params": {},
+        "inputs": [
+          "node_0",
+          "node_1"
+        ]
+      },
+      {
+        "id": "node_3",
+        "op": "filter_extract",
+        "params": {
+          "column": "InvoiceDate",
+          "condition": null
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_4",
+        "op": "to_datetime",
+        "params": {
+          "format": "%Y-%m-%d %H:%M:%S"
+        },
+        "inputs": [
+          "node_3"
+        ]
+      },
+      {
+        "id": "node_5",
+        "op": "truncate_to",
+        "params": {
+          "unit": "quarter"
+        },
+        "inputs": [
+          "node_4"
+        ]
+      },
+      {
+        "id": "node_6",
+        "op": "groupby_agg",
+        "params": {
+          "groupby_columns": [
+            "node_5"
+          ],
+          "agg_column": "node_2",
+          "agg_function": "sum"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_7",
+        "op": "mean",
+        "params": {},
+        "inputs": [
+          "node_6"
+        ]
+      },
+      {
+        "id": "node_8",
+        "op": "std",
+        "params": {},
+        "inputs": [
+          "node_6"
+        ]
+      },
+      {
+        "id": "node_9",
+        "op": "filter_extract",
+        "params": {
+          "column": "Quantity",
+          "condition": "Country == 'Netherlands'"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_10",
+        "op": "filter_extract",
+        "params": {
+          "column": "Price",
+          "condition": "Country == 'Netherlands'"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_11",
+        "op": "multiply",
+        "params": {},
+        "inputs": [
+          "node_9",
+          "node_10"
+        ]
+      },
+      {
+        "id": "node_12",
+        "op": "filter_extract",
+        "params": {
+          "column": "InvoiceDate",
+          "condition": "Country == 'Netherlands'"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_13",
+        "op": "to_datetime",
+        "params": {
+          "format": "%Y-%m-%d %H:%M:%S"
+        },
+        "inputs": [
+          "node_12"
+        ]
+      },
+      {
+        "id": "node_14",
+        "op": "truncate_to",
+        "params": {
+          "unit": "quarter"
+        },
+        "inputs": [
+          "node_13"
+        ]
+      },
+      {
+        "id": "node_15",
+        "op": "groupby_agg",
+        "params": {
+          "groupby_columns": [
+            "node_14"
+          ],
+          "agg_column": "node_11",
+          "agg_function": "sum"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_16",
+        "op": "subtract",
+        "params": {},
+        "inputs": [
+          "node_15",
+          "node_7"
+        ]
+      },
+      {
+        "id": "node_17",
+        "op": "divide",
+        "params": {},
+        "inputs": [
+          "node_16",
+          "node_8"
+        ]
+      }
+    ],
+    "output_node": "node_17"
+  },
+  "python_code": "# Calculate revenue per invoice (Quantity * Price)\ndf['Revenue'] = df['Quantity'] * df['Price']\n\n# Filter for Netherlands only\nnetherlands_df = df[df['Country'] == 'Netherlands'].copy()\n\n# Extract quarter from InvoiceDate\nnetherlands_df['Quarter'] = pd.to_datetime(netherlands_df['InvoiceDate']).dt.to_period('Q')\n\n# Calculate quarterly revenue for Netherlands\nquarterly_revenue_netherlands = netherlands_df.groupby('Quarter')['Revenue'].sum().reset_index()\nquarterly_revenue_netherlands.columns = ['Quarter', 'Netherlands_Revenue']\n\n# Calculate overall quarterly average revenue (all countries)\ndf['Quarter'] = pd.to_datetime(df['InvoiceDate']).dt.to_period('Q')\nquarterly_avg_all = df.groupby('Quarter')['Revenue'].sum().reset_index()\nquarterly_avg_all.columns = ['Quarter', 'Global_Quarterly_Revenue']\nglobal_quarterly_avg = quarterly_avg_all['Global_Quarterly_Revenue'].mean()\n\n# Merge and calculate Z-score\nmerged = quarterly_revenue_netherlands.merge(quarterly_avg_all, on='Quarter', how='left')\nmerged['Z_Score'] = (merged['Netherlands_Revenue'] - global_quarterly_avg) / merged['Global_Quarterly_Revenue'].std()\n\nresult = merged[['Quarter', 'Netherlands_Revenue', 'Z_Score']]"
+}

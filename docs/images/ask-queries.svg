@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="540" viewBox="0 0 960 540" role="img" aria-label="Placeholder: Ask Queries">
+  <rect width="960" height="540" fill="#f5f5f4"/>
+  <rect x="24" y="24" width="912" height="492" fill="#fff" stroke="#d6d3d1" stroke-width="2"/>
+  <text x="480" y="230" text-anchor="middle" font-family="ui-sans-serif, system-ui, sans-serif" font-size="22" fill="#44403c">Screenshot needed</text>
+  <text x="480" y="268" text-anchor="middle" font-family="ui-sans-serif, system-ui, sans-serif" font-size="16" fill="#78716c">docs/images/ask-queries.png</text>
+  <text x="480" y="308" text-anchor="middle" font-family="ui-sans-serif, system-ui, sans-serif" font-size="14" fill="#a8a29e">Ask Queries with a question typed and an answer card visible. No keys or private data.</text>
+</svg>

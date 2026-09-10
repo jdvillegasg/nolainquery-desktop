@@ -1,0 +1,193 @@
+{
+  "name": "Revenue contribution of 'holiday-only' customers (Nov-Dec) in 2010.",
+  "version": "1",
+  "dag": {
+    "graph_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567892",
+    "nodes": [
+      {
+        "id": "node_0",
+        "op": "filter_extract",
+        "params": {
+          "column": "InvoiceDate",
+          "condition": "InvoiceDate.str.startswith('2010')"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_1",
+        "op": "to_datetime",
+        "params": {},
+        "inputs": [
+          "node_0"
+        ]
+      },
+      {
+        "id": "node_2",
+        "op": "extract_month",
+        "params": {},
+        "inputs": [
+          "node_1"
+        ]
+      },
+      {
+        "id": "node_3",
+        "op": "filter_extract",
+        "params": {
+          "column": "Customer ID",
+          "condition": "InvoiceDate.str.startswith('2010')"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_4",
+        "op": "filter_extract",
+        "params": {
+          "column": "Quantity",
+          "condition": "InvoiceDate.str.startswith('2010')"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_5",
+        "op": "filter_extract",
+        "params": {
+          "column": "Price",
+          "condition": "InvoiceDate.str.startswith('2010')"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_6",
+        "op": "multiply",
+        "params": {},
+        "inputs": [
+          "node_4",
+          "node_5"
+        ]
+      },
+      {
+        "id": "node_7",
+        "op": "isin",
+        "params": {
+          "values": [
+            11,
+            12
+          ]
+        },
+        "inputs": [
+          "node_2"
+        ]
+      },
+      {
+        "id": "node_8",
+        "op": "isnan",
+        "params": {},
+        "inputs": [
+          "node_3"
+        ]
+      },
+      {
+        "id": "node_9",
+        "op": "logical_not",
+        "params": {},
+        "inputs": [
+          "node_8"
+        ]
+      },
+      {
+        "id": "node_10",
+        "op": "logical_and",
+        "params": {},
+        "inputs": [
+          "node_7",
+          "node_9"
+        ]
+      },
+      {
+        "id": "node_11",
+        "op": "isin",
+        "params": {
+          "values": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10
+          ]
+        },
+        "inputs": [
+          "node_2"
+        ]
+      },
+      {
+        "id": "node_12",
+        "op": "logical_and",
+        "params": {},
+        "inputs": [
+          "node_11",
+          "node_9"
+        ]
+      },
+      {
+        "id": "node_13",
+        "op": "sum_if",
+        "params": {},
+        "inputs": [
+          "node_6",
+          "node_10"
+        ]
+      },
+      {
+        "id": "node_14",
+        "op": "sum_if",
+        "params": {},
+        "inputs": [
+          "node_6",
+          "node_12"
+        ]
+      },
+      {
+        "id": "node_15",
+        "op": "subtract",
+        "params": {},
+        "inputs": [
+          "node_13",
+          "node_14"
+        ]
+      },
+      {
+        "id": "node_16",
+        "op": "divide",
+        "params": {},
+        "inputs": [
+          "node_15",
+          "node_13"
+        ]
+      },
+      {
+        "id": "node_17",
+        "op": "load_constant",
+        "params": {
+          "value": 100
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_18",
+        "op": "multiply",
+        "params": {},
+        "inputs": [
+          "node_16",
+          "node_17"
+        ]
+      }
+    ],
+    "output_node": "node_18"
+  },
+  "python_code": "# Filter data for 2010\ndf_2010 = df[df['InvoiceDate'].str.startswith('2010')].copy()\n\n# Identify holiday-only customers (Nov-Dec) in 2010\n# First, find customers who purchased in Nov-Dec 2010\ndf_2010['InvoiceDate'] = pd.to_datetime(df_2010['InvoiceDate'])\nnov_dec_2010 = df_2010[(df_2010['InvoiceDate'].dt.month.isin([11, 12])) & (df_2010['Customer ID'].notna())]\n\n# Get unique customers who purchased in Nov-Dec 2010\nholiday_customers = nov_dec_2010['Customer ID'].unique()\n\n# Check if these customers purchased in other months of 2010\nother_months_2010 = df_2010[(df_2010['InvoiceDate'].dt.month.isin([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])) & (df_2010['Customer ID'].notna())]\nother_customers = other_months_2010['Customer ID'].unique()\n\n# Holiday-only customers are those who only purchased in Nov-Dec 2010\nholiday_only_customers = set(holiday_customers) - set(other_customers)\n\n# Filter transactions for holiday-only customers in Nov-Dec 2010\nholiday_only_transactions = nov_dec_2010[nov_dec_2010['Customer ID'].isin(holiday_only_customers)]\n\n# Calculate revenue contribution\nholiday_only_revenue = (holiday_only_transactions['Quantity'] * holiday_only_transactions['Price']).sum()\ntotal_revenue_nov_dec_2010 = (nov_dec_2010['Quantity'] * nov_dec_2010['Price']).sum()\n\n# Calculate contribution percentage\nif total_revenue_nov_dec_2010 > 0:\n    contribution_pct = (holiday_only_revenue / total_revenue_nov_dec_2010) * 100\nelse:\n    contribution_pct = 0.0\n\nresult = {\n    'holiday_only_revenue': holiday_only_revenue,\n    'total_revenue_nov_dec_2010': total_revenue_nov_dec_2010,\n    'contribution_percentage': contribution_pct\n}"
+}

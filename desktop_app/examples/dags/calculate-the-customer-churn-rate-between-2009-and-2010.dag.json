@@ -1,0 +1,103 @@
+{
+  "name": "Calculate the customer churn rate between 2009 and 2010.",
+  "version": "1",
+  "dag": {
+    "graph_id": "b7c8d9e0-f1a2-3456-7890-bcdef1234567",
+    "nodes": [
+      {
+        "id": "node_0",
+        "op": "filter_extract",
+        "params": {
+          "column": "Customer ID",
+          "condition": "InvoiceDate >= '2009-01-01' and InvoiceDate < '2010-01-01'"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_1",
+        "op": "dropna",
+        "params": {},
+        "inputs": [
+          "node_0"
+        ]
+      },
+      {
+        "id": "node_2",
+        "op": "unique",
+        "params": {},
+        "inputs": [
+          "node_1"
+        ]
+      },
+      {
+        "id": "node_3",
+        "op": "filter_extract",
+        "params": {
+          "column": "Customer ID",
+          "condition": "InvoiceDate >= '2010-01-01' and InvoiceDate < '2011-01-01'"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_4",
+        "op": "dropna",
+        "params": {},
+        "inputs": [
+          "node_3"
+        ]
+      },
+      {
+        "id": "node_5",
+        "op": "unique",
+        "params": {},
+        "inputs": [
+          "node_4"
+        ]
+      },
+      {
+        "id": "node_6",
+        "op": "isin_from_node",
+        "params": {},
+        "inputs": [
+          "node_2",
+          "node_5"
+        ]
+      },
+      {
+        "id": "node_7",
+        "op": "logical_not",
+        "params": {},
+        "inputs": [
+          "node_6"
+        ]
+      },
+      {
+        "id": "node_8",
+        "op": "count_if",
+        "params": {},
+        "inputs": [
+          "node_7"
+        ]
+      },
+      {
+        "id": "node_9",
+        "op": "nunique",
+        "params": {},
+        "inputs": [
+          "node_1"
+        ]
+      },
+      {
+        "id": "node_10",
+        "op": "divide",
+        "params": {},
+        "inputs": [
+          "node_8",
+          "node_9"
+        ]
+      }
+    ],
+    "output_node": "node_10"
+  },
+  "python_code": "# Calculate customer churn rate between 2009 and 2010\n# Churn rate = customers who were active in 2009 but not in 2010 / customers active in 2009\n\n# Convert InvoiceDate to datetime\ndf['InvoiceDate'] = pd.to_datetime(df['InvoiceDate'])\n\n# Filter out rows with missing Customer ID\ndf_clean = df.dropna(subset=['Customer ID']).copy()\n\n# Get customers active in 2009\ncustomers_2009 = df_clean[df_clean['InvoiceDate'].dt.year == 2009]['Customer ID'].unique()\n\n# Get customers active in 2010\ncustomers_2010 = df_clean[df_clean['InvoiceDate'].dt.year == 2010]['Customer ID'].unique()\n\n# Customers who were active in 2009 but not in 2010\nchurned_customers = set(customers_2009) - set(customers_2010)\n\n# Calculate churn rate\nif len(customers_2009) > 0:\n    churn_rate = len(churned_customers) / len(customers_2009)\nelse:\n    churn_rate = 0.0\n\nresult = churn_rate"
+}

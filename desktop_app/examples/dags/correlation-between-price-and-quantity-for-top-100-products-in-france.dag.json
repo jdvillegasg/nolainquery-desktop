@@ -1,0 +1,278 @@
+{
+  "name": "Correlation between price and quantity for top 100 products in France.",
+  "version": "1",
+  "dag": {
+    "graph_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "nodes": [
+      {
+        "id": "node_0",
+        "op": "filter_extract",
+        "params": {
+          "column": "Quantity",
+          "condition": "Country == 'France'"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_1",
+        "op": "filter_extract",
+        "params": {
+          "column": "Price",
+          "condition": "Country == 'France'"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_2",
+        "op": "groupby_agg",
+        "params": {
+          "groupby_column": "StockCode",
+          "agg_column": "node_0",
+          "agg_function": "sum"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_3",
+        "op": "groupby_agg",
+        "params": {
+          "groupby_column": "StockCode",
+          "agg_column": "node_1",
+          "agg_function": "mean"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_4",
+        "op": "nlargest",
+        "params": {
+          "n": 100
+        },
+        "inputs": [
+          "node_2"
+        ]
+      },
+      {
+        "id": "node_5",
+        "op": "get_index",
+        "params": {},
+        "inputs": [
+          "node_4"
+        ]
+      },
+      {
+        "id": "node_6",
+        "op": "isin_from_node",
+        "params": {},
+        "inputs": [
+          "node_2",
+          "node_5"
+        ]
+      },
+      {
+        "id": "node_7",
+        "op": "index",
+        "params": {
+          "indices": "node_6"
+        },
+        "inputs": [
+          "node_2"
+        ]
+      },
+      {
+        "id": "node_8",
+        "op": "index",
+        "params": {
+          "indices": "node_6"
+        },
+        "inputs": [
+          "node_3"
+        ]
+      },
+      {
+        "id": "node_9",
+        "op": "multiply",
+        "params": {},
+        "inputs": [
+          "node_7",
+          "node_8"
+        ]
+      },
+      {
+        "id": "node_10",
+        "op": "sum",
+        "params": {},
+        "inputs": [
+          "node_9"
+        ]
+      },
+      {
+        "id": "node_11",
+        "op": "sum",
+        "params": {},
+        "inputs": [
+          "node_7"
+        ]
+      },
+      {
+        "id": "node_12",
+        "op": "sum",
+        "params": {},
+        "inputs": [
+          "node_8"
+        ]
+      },
+      {
+        "id": "node_13",
+        "op": "count",
+        "params": {},
+        "inputs": [
+          "node_7"
+        ]
+      },
+      {
+        "id": "node_14",
+        "op": "multiply",
+        "params": {},
+        "inputs": [
+          "node_7",
+          "node_7"
+        ]
+      },
+      {
+        "id": "node_15",
+        "op": "sum",
+        "params": {},
+        "inputs": [
+          "node_14"
+        ]
+      },
+      {
+        "id": "node_16",
+        "op": "multiply",
+        "params": {},
+        "inputs": [
+          "node_8",
+          "node_8"
+        ]
+      },
+      {
+        "id": "node_17",
+        "op": "sum",
+        "params": {},
+        "inputs": [
+          "node_16"
+        ]
+      },
+      {
+        "id": "node_18",
+        "op": "multiply",
+        "params": {},
+        "inputs": [
+          "node_13",
+          "node_10"
+        ]
+      },
+      {
+        "id": "node_19",
+        "op": "multiply",
+        "params": {},
+        "inputs": [
+          "node_11",
+          "node_12"
+        ]
+      },
+      {
+        "id": "node_20",
+        "op": "subtract",
+        "params": {},
+        "inputs": [
+          "node_18",
+          "node_19"
+        ]
+      },
+      {
+        "id": "node_21",
+        "op": "multiply",
+        "params": {},
+        "inputs": [
+          "node_13",
+          "node_15"
+        ]
+      },
+      {
+        "id": "node_22",
+        "op": "multiply",
+        "params": {},
+        "inputs": [
+          "node_11",
+          "node_11"
+        ]
+      },
+      {
+        "id": "node_23",
+        "op": "subtract",
+        "params": {},
+        "inputs": [
+          "node_21",
+          "node_22"
+        ]
+      },
+      {
+        "id": "node_24",
+        "op": "multiply",
+        "params": {},
+        "inputs": [
+          "node_13",
+          "node_17"
+        ]
+      },
+      {
+        "id": "node_25",
+        "op": "multiply",
+        "params": {},
+        "inputs": [
+          "node_12",
+          "node_12"
+        ]
+      },
+      {
+        "id": "node_26",
+        "op": "subtract",
+        "params": {},
+        "inputs": [
+          "node_24",
+          "node_25"
+        ]
+      },
+      {
+        "id": "node_27",
+        "op": "multiply",
+        "params": {},
+        "inputs": [
+          "node_23",
+          "node_26"
+        ]
+      },
+      {
+        "id": "node_28",
+        "op": "sqrt",
+        "params": {},
+        "inputs": [
+          "node_27"
+        ]
+      },
+      {
+        "id": "node_29",
+        "op": "divide",
+        "params": {},
+        "inputs": [
+          "node_20",
+          "node_28"
+        ]
+      }
+    ],
+    "output_node": "node_29"
+  },
+  "python_code": "# Filter data for France only\nfrance_df = df[df['Country'] == 'France'].copy()\n\n# Calculate total quantity sold per product (StockCode) in France\nproduct_quantity = france_df.groupby('StockCode')['Quantity'].sum().reset_index()\nproduct_quantity.columns = ['StockCode', 'TotalQuantity']\n\n# Calculate average price per product in France\nproduct_price = france_df.groupby('StockCode')['Price'].mean().reset_index()\nproduct_price.columns = ['StockCode', 'AvgPrice']\n\n# Merge quantity and price data\nproduct_stats = product_quantity.merge(product_price, on='StockCode')\n\n# Sort by total quantity descending and take top 100 products\ntop_100_products = product_stats.sort_values('TotalQuantity', ascending=False).head(100).copy()\n\n# Calculate correlation between price and quantity for top 100 products\nresult = top_100_products['AvgPrice'].corr(top_100_products['TotalQuantity'])"
+}

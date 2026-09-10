@@ -1,0 +1,164 @@
+{
+  "name": "What is the month-over-month revenue growth rate for France in 2010?",
+  "version": "1",
+  "dag": {
+    "graph_id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+    "nodes": [
+      {
+        "id": "node_0",
+        "op": "filter_extract",
+        "params": {
+          "column": "InvoiceDate",
+          "condition": "Country == 'France'"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_1",
+        "op": "startswith",
+        "params": {
+          "prefix": "2010"
+        },
+        "inputs": [
+          "node_0"
+        ]
+      },
+      {
+        "id": "node_2",
+        "op": "filter_extract",
+        "params": {
+          "column": "Quantity",
+          "condition": "Country == 'France'"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_3",
+        "op": "filter_extract",
+        "params": {
+          "column": "Price",
+          "condition": "Country == 'France'"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_4",
+        "op": "multiply",
+        "params": {},
+        "inputs": [
+          "node_2",
+          "node_3"
+        ]
+      },
+      {
+        "id": "node_5",
+        "op": "index",
+        "params": {
+          "indices": "node_1"
+        },
+        "inputs": [
+          "node_4"
+        ]
+      },
+      {
+        "id": "node_6",
+        "op": "filter_extract",
+        "params": {
+          "column": "InvoiceDate",
+          "condition": "Country == 'France'"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_7",
+        "op": "str",
+        "params": {},
+        "inputs": [
+          "node_6"
+        ]
+      },
+      {
+        "id": "node_8",
+        "op": "index",
+        "params": {
+          "indices": "node_1"
+        },
+        "inputs": [
+          "node_7"
+        ]
+      },
+      {
+        "id": "node_9",
+        "op": "index",
+        "params": {
+          "indices": 0
+        },
+        "inputs": [
+          "node_8"
+        ]
+      },
+      {
+        "id": "node_10",
+        "op": "index",
+        "params": {
+          "indices": 7
+        },
+        "inputs": [
+          "node_8"
+        ]
+      },
+      {
+        "id": "node_11",
+        "op": "concat_str",
+        "params": {},
+        "inputs": [
+          "node_9",
+          "node_10"
+        ]
+      },
+      {
+        "id": "node_12",
+        "op": "groupby_agg",
+        "params": {
+          "groupby_columns": [
+            "node_11"
+          ],
+          "agg_column": "node_5",
+          "agg_function": "sum"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_13",
+        "op": "sort_values",
+        "params": {
+          "ascending": true
+        },
+        "inputs": [
+          "node_12"
+        ]
+      },
+      {
+        "id": "node_14",
+        "op": "shift",
+        "params": {
+          "periods": 1
+        },
+        "inputs": [
+          "node_13"
+        ]
+      },
+      {
+        "id": "node_15",
+        "op": "percentage_change",
+        "params": {},
+        "inputs": [
+          "node_14",
+          "node_13"
+        ]
+      }
+    ],
+    "output_node": "node_15"
+  },
+  "python_code": "# Filter for France and 2010\nfrance_2010 = df[(df['Country'] == 'France') & (df['InvoiceDate'].str.startswith('2010'))].copy()\n\n# Create a revenue column\nfrance_2010['Revenue'] = france_2010['Quantity'] * france_2010['Price']\n\n# Extract year-month for grouping\nfrance_2010['YearMonth'] = france_2010['InvoiceDate'].str[:7]\n\n# Calculate monthly revenue\nmonthly_revenue = france_2010.groupby('YearMonth')['Revenue'].sum().reset_index()\nmonthly_revenue.columns = ['YearMonth', 'Revenue']\n\n# Sort by month\nmonthly_revenue = monthly_revenue.sort_values('YearMonth').reset_index(drop=True)\n\n# Calculate month-over-month growth rate\nmonthly_revenue['Previous_Revenue'] = monthly_revenue['Revenue'].shift(1)\nmonthly_revenue['Growth_Rate'] = (monthly_revenue['Revenue'] - monthly_revenue['Previous_Revenue']) / monthly_revenue['Previous_Revenue']\n\n# Store the result\nresult = monthly_revenue[['YearMonth', 'Revenue', 'Growth_Rate']]"
+}

@@ -1,0 +1,97 @@
+{
+  "name": "Calculate the 7-day rolling average of revenue for Australia.",
+  "version": "1",
+  "dag": {
+    "graph_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "nodes": [
+      {
+        "id": "node_0",
+        "op": "filter_extract",
+        "params": {
+          "column": "InvoiceDate",
+          "condition": "Country == 'Australia'"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_1",
+        "op": "to_datetime",
+        "params": {},
+        "inputs": [
+          "node_0"
+        ]
+      },
+      {
+        "id": "node_2",
+        "op": "truncate_to",
+        "params": {
+          "unit": "day"
+        },
+        "inputs": [
+          "node_1"
+        ]
+      },
+      {
+        "id": "node_3",
+        "op": "filter_extract",
+        "params": {
+          "column": "Quantity",
+          "condition": "Country == 'Australia'"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_4",
+        "op": "filter_extract",
+        "params": {
+          "column": "Price",
+          "condition": "Country == 'Australia'"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_5",
+        "op": "multiply",
+        "params": {},
+        "inputs": [
+          "node_3",
+          "node_4"
+        ]
+      },
+      {
+        "id": "node_6",
+        "op": "groupby_agg",
+        "params": {
+          "groupby_columns": [
+            "node_2"
+          ],
+          "agg_column": "node_5",
+          "agg_function": "sum"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_7",
+        "op": "sort_values",
+        "params": {
+          "ascending": true
+        },
+        "inputs": [
+          "node_6"
+        ]
+      },
+      {
+        "id": "node_8",
+        "op": "rolling_mean",
+        "params": {
+          "window": 7
+        },
+        "inputs": [
+          "node_7"
+        ]
+      }
+    ],
+    "output_node": "node_8"
+  },
+  "python_code": "# Filter for Australia and calculate revenue per transaction\naustralia_df = df[df['Country'] == 'Australia'].copy()\n\n# Calculate revenue for each row\naustralia_df['Revenue'] = australia_df['Quantity'] * australia_df['Price']\n\n# Convert InvoiceDate to datetime\naustralia_df['InvoiceDate'] = pd.to_datetime(australia_df['InvoiceDate'])\n\n# Set InvoiceDate as index for rolling window\naustralia_df = australia_df.set_index('InvoiceDate').sort_index()\n\n# Calculate daily revenue\ndaily_revenue = australia_df['Revenue'].resample('D').sum()\n\n# Calculate 7-day rolling average\nresult = daily_revenue.rolling(window=7, min_periods=1).mean().reset_index()\nresult.columns = ['InvoiceDate', '7_day_rolling_avg_revenue']"
+}

@@ -1,0 +1,99 @@
+{
+  "name": "Cumulative revenue share of the top 5% of customers.",
+  "version": "1",
+  "dag": {
+    "graph_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "nodes": [
+      {
+        "id": "node_0",
+        "op": "filter_extract",
+        "params": {
+          "column": "Quantity",
+          "condition": null
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_1",
+        "op": "filter_extract",
+        "params": {
+          "column": "Price",
+          "condition": null
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_2",
+        "op": "multiply",
+        "params": {},
+        "inputs": [
+          "node_0",
+          "node_1"
+        ]
+      },
+      {
+        "id": "node_3",
+        "op": "groupby_agg",
+        "params": {
+          "groupby_column": "Customer ID",
+          "agg_column": "node_2",
+          "agg_function": "sum"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_4",
+        "op": "percentile_rank",
+        "params": {},
+        "inputs": [
+          "node_3"
+        ]
+      },
+      {
+        "id": "node_5",
+        "op": "load_constant",
+        "params": {
+          "value": 0.95
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_6",
+        "op": "ge",
+        "params": {},
+        "inputs": [
+          "node_4",
+          "node_5"
+        ]
+      },
+      {
+        "id": "node_7",
+        "op": "sum_if",
+        "params": {},
+        "inputs": [
+          "node_3",
+          "node_6"
+        ]
+      },
+      {
+        "id": "node_8",
+        "op": "sum",
+        "params": {},
+        "inputs": [
+          "node_3"
+        ]
+      },
+      {
+        "id": "node_9",
+        "op": "divide",
+        "params": {},
+        "inputs": [
+          "node_7",
+          "node_8"
+        ]
+      }
+    ],
+    "output_node": "node_9"
+  },
+  "python_code": "# Calculate total revenue per customer\ndf_valid = df.dropna(subset=['Customer ID']).copy()\ndf_valid['Revenue'] = df_valid['Quantity'] * df_valid['Price']\n\n# Aggregate revenue by customer\ncustomer_revenue = df_valid.groupby('Customer ID')['Revenue'].sum().reset_index()\ncustomer_revenue.columns = ['Customer ID', 'TotalRevenue']\n\n# Sort customers by revenue descending\ncustomer_revenue = customer_revenue.sort_values('TotalRevenue', ascending=False).reset_index(drop=True)\n\n# Calculate total revenue across all customers\ntotal_revenue = customer_revenue['TotalRevenue'].sum()\n\n# Determine the number of customers in top 5%\nn_top = max(1, int(len(customer_revenue) * 0.05))\n\n# Get top 5% customers\ntop_customers = customer_revenue.head(n_top)\n\n# Calculate cumulative revenue share\ncumulative_revenue = top_customers['TotalRevenue'].sum()\nresult = cumulative_revenue / total_revenue"
+}

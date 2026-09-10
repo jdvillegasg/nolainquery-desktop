@@ -1,0 +1,177 @@
+{
+  "name": "Price elasticity of demand for StockCode M.",
+  "version": "1",
+  "dag": {
+    "graph_id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+    "nodes": [
+      {
+        "id": "node_0",
+        "op": "filter_extract",
+        "params": {
+          "column": "Quantity",
+          "condition": "StockCode == 'M'"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_1",
+        "op": "filter_extract",
+        "params": {
+          "column": "Invoice",
+          "condition": "StockCode == 'M'"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_2",
+        "op": "groupby_agg",
+        "params": {
+          "groupby_column": "Price",
+          "agg_column": "node_0",
+          "agg_function": "sum"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_3",
+        "op": "groupby_agg",
+        "params": {
+          "groupby_column": "Price",
+          "agg_column": "node_1",
+          "agg_function": "nunique"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_4",
+        "op": "sort_values",
+        "params": {
+          "ascending": true
+        },
+        "inputs": [
+          "node_2"
+        ]
+      },
+      {
+        "id": "node_5",
+        "op": "shift",
+        "params": {
+          "periods": 1
+        },
+        "inputs": [
+          "node_4"
+        ]
+      },
+      {
+        "id": "node_6",
+        "op": "percentage_change",
+        "params": {},
+        "inputs": [
+          "node_5",
+          "node_4"
+        ]
+      },
+      {
+        "id": "node_7",
+        "op": "sort_values",
+        "params": {
+          "ascending": true
+        },
+        "inputs": [
+          "node_3"
+        ]
+      },
+      {
+        "id": "node_8",
+        "op": "shift",
+        "params": {
+          "periods": 1
+        },
+        "inputs": [
+          "node_7"
+        ]
+      },
+      {
+        "id": "node_9",
+        "op": "percentage_change",
+        "params": {},
+        "inputs": [
+          "node_8",
+          "node_7"
+        ]
+      },
+      {
+        "id": "node_10",
+        "op": "divide",
+        "params": {},
+        "inputs": [
+          "node_9",
+          "node_6"
+        ]
+      },
+      {
+        "id": "load_constant_-10",
+        "op": "load_constant",
+        "params": {
+          "value": -10
+        },
+        "inputs": []
+      },
+      {
+        "id": "load_constant_10",
+        "op": "load_constant",
+        "params": {
+          "value": 10
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_11",
+        "op": "gt",
+        "params": {},
+        "inputs": [
+          "node_10",
+          "load_constant_-10"
+        ]
+      },
+      {
+        "id": "node_12",
+        "op": "lt",
+        "params": {},
+        "inputs": [
+          "node_10",
+          "load_constant_10"
+        ]
+      },
+      {
+        "id": "node_13",
+        "op": "logical_and",
+        "params": {},
+        "inputs": [
+          "node_11",
+          "node_12"
+        ]
+      },
+      {
+        "id": "node_14",
+        "op": "index",
+        "params": {
+          "indices": "node_13"
+        },
+        "inputs": [
+          "node_10"
+        ]
+      },
+      {
+        "id": "node_15",
+        "op": "mean",
+        "params": {},
+        "inputs": [
+          "node_14"
+        ]
+      }
+    ],
+    "output_node": "node_15"
+  },
+  "python_code": "# Filter data for the specific StockCode\nstockcode_m = df[df['StockCode'] == 'M'].copy()\n\n# Check if we have enough data to compute price elasticity\nif stockcode_m.empty:\n    result = None\n    # Comment: No data available for StockCode 'M'\nelse:\n    # Calculate total revenue and total quantity per price point\n    # Price elasticity of demand = % change in quantity / % change in price\n    # We'll aggregate by price to get quantity sold at each price\n    price_quantity = stockcode_m.groupby('Price').agg(\n        total_quantity=('Quantity', 'sum'),\n        count=('Invoice', 'nunique')\n    ).reset_index()\n    \n    # Remove outliers or price points with very few transactions\n    price_quantity = price_quantity[price_quantity['count'] >= 1].copy()\n    \n    # Sort by price for calculating percentage changes\n    price_quantity = price_quantity.sort_values('Price').reset_index(drop=True)\n    \n    # Calculate percentage changes in price and quantity\n    price_quantity['pct_change_price'] = price_quantity['Price'].pct_change()\n    price_quantity['pct_change_quantity'] = price_quantity['total_quantity'].pct_change()\n    \n    # Calculate elasticity (avoid division by zero)\n    mask = (price_quantity['pct_change_price'] != 0) & (~price_quantity['pct_change_price'].isna())\n    price_quantity['elasticity'] = price_quantity['pct_change_quantity'] / price_quantity['pct_change_price']\n    \n    # Filter out infinite or extreme values\n    valid_elasticity = price_quantity.loc[mask, 'elasticity']\n    valid_elasticity = valid_elasticity[(valid_elasticity > -10) & (valid_elasticity < 10)]\n    \n    if len(valid_elasticity) > 0:\n        # Average elasticity across all price changes\n        result = valid_elasticity.mean()\n    else:\n        result = None\n        # Comment: Could not compute price elasticity due to insufficient price variation or data"
+}

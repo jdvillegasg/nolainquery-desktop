@@ -1,0 +1,248 @@
+/* ── Query view theme (Screen 2) — extends Home design system ─────────────── */
+
+.dag-editor-root {
+  background: #fefefe;
+  font-family: "Inter", system-ui, sans-serif;
+}
+
+.dag-editor-root .dag-canvas {
+  background: #fefefe;
+}
+
+/* Flatten neobrutalist / drop shadows in query workspace */
+.dag-editor-root .dag-sidebar-btn,
+.dag-editor-root .dag-canvas-mode-btn,
+.dag-editor-root .dag-node-card,
+.dag-editor-root .dag-bottom-bar-btn,
+.dag-editor-root .dag-query-bar-show {
+  box-shadow: none !important;
+}
+
+/* ── Conversation panel ─────────────────────────────────────────────────────── */
+
+.dag-editor-root .dag-conversation-panel-title {
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #78716c;
+}
+
+.dag-editor-root .dag-conversation-kicker:not(.dag-conversation-kicker--section):not(.dag-conversation-kicker--muted) {
+  color: #78716c;
+}
+
+.dag-editor-root .dag-conversation-empty {
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 13px;
+}
+
+.dag-editor-root .dag-starter-prompts button:hover,
+.dag-editor-root .dag-conversation-history-panel .dag-history-item:hover,
+.dag-editor-root .dag-conversation-answer-next-chip:hover,
+.dag-editor-root .dag-conversation-answer-recipe-step:hover,
+.dag-editor-root .dag-conversation-answer-follow:hover {
+  border-color: #d4d4d4 !important;
+  background: #f5f5f5 !important;
+  color: #1c1917 !important;
+}
+
+.dag-editor-root .dag-conversation-textarea {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  border-color: #ebebeb;
+  border-radius: 8px;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.dag-editor-root .dag-conversation-textarea:focus {
+  border-color: #d4d4d4;
+  background: #fafafa;
+}
+
+.dag-editor-root .dag-computation-graph-toggle {
+  border-radius: 8px;
+  border-color: #ebebeb;
+  transition: all 0.2s ease;
+}
+
+.dag-editor-root .dag-computation-graph-toggle:hover:not(:disabled),
+.dag-editor-root .dag-computation-graph-toggle.active {
+  border-color: #d4d4d4;
+  background: #f5f5f5;
+  color: #1c1917;
+}
+
+.dag-editor-root .dag-computation-graph-toggle.active .dag-computation-graph-switch {
+  background: #525252;
+}
+
+.dag-editor-root .dag-conversation-run {
+  border: 1px solid #ebebeb !important;
+  border-radius: 8px !important;
+  background: #ffffff !important;
+  color: #1c1917 !important;
+  font-family: "Inter", system-ui, sans-serif !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  letter-spacing: normal !important;
+  text-transform: none !important;
+  height: 28px !important;
+  padding: 0 12px !important;
+  min-width: 56px;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-sizing: border-box !important;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.dag-editor-root .dag-conversation-run:hover:not(:disabled) {
+  background: #f5f5f5 !important;
+  border-color: #d4d4d4 !important;
+}
+
+.dag-editor-root .dag-conversation-run:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.dag-editor-root .dag-conversation-run--stop {
+  border-color: #fecaca !important;
+  background: #fef2f2 !important;
+  color: #dc2626 !important;
+}
+
+.dag-editor-root .dag-conversation-progress-dot {
+  background: #a3a3a3;
+}
+
+/* Chat bubbles */
+.dag-editor-root .dag-chat-msg {
+  border-radius: 8px;
+  border: 1px solid #ebebeb;
+  border-left-width: 1px !important;
+}
+
+.dag-editor-root .dag-chat-msg--user {
+  background: #fafafa;
+  align-self: flex-end;
+}
+
+.dag-editor-root .dag-chat-msg--assistant {
+  background: #ffffff;
+}
+
+.dag-editor-root .dag-chat-msg--error {
+  background: #fef2f2;
+  border-color: #fecaca;
+}
+
+.dag-editor-root .dag-chat-msg-text {
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 13px;
+}
+
+/* Answer cards — neutral border, intensity via background */
+.dag-editor-root .dag-conversation-answer {
+  border: 1px solid #ebebeb;
+  border-left-width: 1px !important;
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: #fafafa;
+}
+
+.dag-editor-root .dag-conversation-answer--partial {
+  background: #f4f4f4;
+}
+
+.dag-editor-root .dag-conversation-answer--couldnt_compute,
+.dag-editor-root .dag-conversation-answer--empty {
+  background: #f8f8f8;
+}
+
+.dag-editor-root .dag-conversation-answer-prose {
+  font-family: "Inter", system-ui, sans-serif;
+}
+
+/* Canvas header / mode toggles */
+.dag-editor-root .dag-canvas-mode-btn:hover,
+.dag-editor-root .dag-canvas-mode-btn.active,
+.dag-editor-root .dag-sidebar-btn:hover,
+.dag-editor-root .dag-sidebar-btn.active {
+  background: #f5f5f5 !important;
+  border-color: #d4d4d4 !important;
+  box-shadow: none !important;
+}
+
+.dag-editor-root .dag-query-bar-show:hover {
+  background: #f5f5f5 !important;
+  border-color: #d4d4d4 !important;
+  box-shadow: none !important;
+}
+
+/* Notebook / code view */
+.dag-editor-root .dag-notebook-cell-kicker,
+.dag-editor-root .dag-notebook-cell-run {
+  color: #44403c !important;
+}
+
+.dag-editor-root .dag-notebook-cell-run:hover:not(:disabled),
+.dag-editor-root .dag-notebook-cell-copy:hover,
+.dag-editor-root .dag-notebook-code-line--assign:hover {
+  background: #f5f5f5 !important;
+  border-color: #d4d4d4 !important;
+}
+
+.dag-editor-root .dag-notebook-code-line--assign.dag-notebook-code-line--active {
+  background: #f0f0f0 !important;
+  box-shadow: inset 2px 0 0 #a3a3a3 !important;
+}
+
+.dag-editor-root .dag-notebook-var-panel--inline {
+  border-left-color: #d4d4d4 !important;
+}
+
+.dag-editor-root .dag-info-description-inline:focus {
+  border-color: #d4d4d4;
+  background: #fafafa;
+}
+
+.dag-editor-root .dag-info-description-save:hover:not(:disabled) {
+  background: #f5f5f5;
+  border-color: #1c1917;
+}
+
+.dag-editor-root .dag-info-section--exec-fresh {
+  animation: dag-query-exec-highlight 1.4s ease-out;
+}
+
+@keyframes dag-query-exec-highlight {
+  0%, 35% {
+    background: #f0f0f0;
+    box-shadow: inset 2px 0 0 #a3a3a3;
+  }
+  100% {
+    background: transparent;
+    box-shadow: none;
+  }
+}
+
+.dag-editor-root .dag-panel-resizer:hover::before,
+.dag-editor-root .dag-panel-resizer:active::before {
+  background: #a3a3a3;
+}
+
+.dag-editor-root .btn-secondary:hover:not(:disabled),
+.dag-editor-root .dag-conversation-history-btn:hover,
+.dag-editor-root .dag-conversation-answer-btn:hover {
+  border-color: #d4d4d4 !important;
+  background: #f5f5f5 !important;
+  color: #1c1917 !important;
+}
+
+.dag-editor-root .btn-primary:hover:not(:disabled) {
+  background: #f5f5f5 !important;
+  border-color: #d4d4d4 !important;
+  color: #1c1917 !important;
+}

@@ -1,0 +1,759 @@
+/* ── Ask Queries (Screen 2) — layout & interaction ─────────────────────────── */
+
+.dag-editor-root {
+  background: var(--color-background, #fefefe);
+}
+
+.dag-editor-root .dag-canvas {
+  background: var(--color-background, #fefefe);
+}
+
+/* ── Workspace layout by state ─────────────────────────────────────────────── */
+
+.dag-editor-workspace--chat-only .dag-canvas,
+.dag-editor-workspace--chat-only .dag-panel-resizer {
+  display: none !important;
+}
+
+.dag-editor-workspace--chat-only .dag-conversation-panel {
+  width: 100% !important;
+  max-width: none !important;
+  flex: 1 1 auto !important;
+  border-right: none;
+}
+
+.dag-editor-workspace--chat-only .dag-conversation-messages-layout,
+.dag-editor-workspace--chat-only .dag-conversation-messages-wrap,
+.dag-editor-workspace--chat-only .dag-conversation-input-area {
+  max-width: 720px;
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.dag-editor-workspace--chat-only .dag-conversation-messages-layout {
+  flex-direction: column;
+}
+
+.dag-editor-workspace--chat-only .dag-conversation-messages-layout:has(.dag-conversation-artifact-rail-overlay) .dag-conversation-messages-wrap {
+  padding-left: 34px;
+}
+
+.dag-editor-workspace--chat-only .dag-conversation-empty {
+  justify-content: center;
+  min-height: min(420px, 50vh);
+  text-align: center;
+  align-items: center;
+}
+
+.dag-editor-workspace--chat-only .dag-starter-prompts {
+  align-items: center;
+  width: 100%;
+}
+
+.dag-editor-workspace--chat-only .dag-starter-prompts button {
+  width: 100%;
+  max-width: 520px;
+}
+
+/* ── Conversation panel (no redundant title bar) ─────────────────────────────── */
+
+.dag-editor-root .dag-conversation-panel {
+  background: var(--color-background, #fefefe);
+  border-right: 1px solid var(--color-border, #ebebeb);
+}
+
+.dag-editor-root .dag-conversation-panel-title {
+  display: none;
+}
+
+.dag-editor-root .dag-conversation-messages-layout {
+  flex: 1 1 0;
+  min-height: 0;
+}
+
+.dag-editor-root .dag-conversation-artifact-rail-dots {
+  border-color: rgba(235, 235, 235, 0.9);
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.dag-editor-root .dag-conversation-artifact-hover-card {
+  border-color: var(--color-border, #ebebeb);
+  border-radius: var(--radius-md, 8px);
+}
+
+.dag-editor-root .dag-conversation-artifact-hover-card-label {
+  font-family: var(--font-nav, "Inter", system-ui, sans-serif);
+  color: var(--color-muted-foreground, #78716c);
+}
+
+.dag-editor-root .dag-conversation-artifact-hover-card-query {
+  font-family: var(--font-nav, "Inter", system-ui, sans-serif);
+  font-size: 0.75rem;
+}
+
+.dag-editor-root .dag-conversation-messages-wrap {
+  padding: 16px 20px;
+  gap: 1.25rem;
+}
+
+/* ── Empty state ───────────────────────────────────────────────────────────── */
+
+.dag-query-empty-title {
+  margin: 0;
+  font-family: var(--font-nav, "Inter", system-ui, sans-serif);
+  font-size: 1.125rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--color-foreground, #1c1917);
+}
+
+.dag-query-empty-lead {
+  margin: 0;
+  font-family: var(--font-nav, "Inter", system-ui, sans-serif);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--color-muted-foreground, #78716c);
+  max-width: 36rem;
+}
+
+.dag-editor-root .dag-starter-prompts button {
+  font-family: var(--font-nav, "Inter", system-ui, sans-serif);
+  font-size: 0.8125rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--color-border, #ebebeb);
+  border-radius: var(--radius-md, 8px);
+  background: var(--color-card, #fff);
+  color: var(--color-foreground, #1c1917);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+/* ── User turns — plain text, not chat bubbles ─────────────────────────────── */
+
+.dag-editor-root .dag-chat-msg--user {
+  align-self: flex-end;
+  max-width: 88%;
+  padding: 0;
+  border: none;
+  background: transparent;
+}
+
+.dag-editor-root .dag-chat-msg--user .dag-chat-msg-text {
+  font-family: var(--font-nav, "Inter", system-ui, sans-serif);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--color-foreground, #1c1917);
+  background: var(--color-muted, #fafafa);
+  border: 1px solid var(--color-border, #ebebeb);
+  border-radius: var(--radius-md, 8px);
+  padding: 0.625rem 0.875rem;
+}
+
+.dag-editor-root .dag-chat-msg--user .dag-chat-msg-time {
+  text-align: right;
+  padding-right: 0.25rem;
+}
+
+/* ── Answer cards ──────────────────────────────────────────────────────────── */
+
+.dag-editor-root .dag-conversation-answer {
+  border: 1px solid var(--color-border, #ebebeb);
+  border-left-width: 1px;
+  border-radius: var(--radius-lg, 10px);
+  padding: 1rem 1.125rem;
+  background: var(--color-card, #fff);
+  gap: 0.75rem;
+}
+
+.dag-editor-root .dag-conversation-answer--partial {
+  border-color: #fde68a;
+  background: #fffbeb;
+}
+
+.dag-editor-root .dag-conversation-answer--couldnt_compute,
+.dag-editor-root .dag-conversation-answer--empty {
+  border-color: var(--color-border, #ebebeb);
+  background: var(--color-muted, #fafafa);
+}
+
+.dag-conversation-answer-headline {
+  margin: 0;
+  font-family: var(--font-nav, "Inter", system-ui, sans-serif);
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.45;
+  letter-spacing: -0.01em;
+  color: var(--color-foreground, #1c1917);
+}
+
+.dag-editor-root .dag-conversation-kicker {
+  color: var(--color-muted-foreground, #78716c);
+  font-size: 0.625rem;
+}
+
+.dag-editor-root .dag-conversation-answer-prose {
+  font-size: 0.875rem;
+  gap: 0.5rem;
+}
+
+.dag-editor-root .dag-conversation-answer-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.dag-editor-root .dag-conversation-answer-secondary {
+  padding: 0.75rem;
+  border: 1px solid var(--color-border, #ebebeb);
+  border-radius: var(--radius-md, 8px);
+  background: var(--color-muted, #fafafa);
+}
+
+.dag-editor-root .dag-conversation-answer-section-label {
+  font-family: var(--font-nav, "Inter", system-ui, sans-serif);
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--color-muted-foreground, #78716c);
+}
+
+.dag-editor-root .dag-conversation-answer-evidence {
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--color-border, #ebebeb);
+}
+
+.dag-editor-root .dag-conversation-answer-table-note {
+  font-size: 0.75rem;
+  color: var(--color-muted-foreground, #78716c);
+}
+
+.dag-editor-root .dag-conversation-answer-actions {
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--color-border, #ebebeb);
+}
+
+.dag-editor-root .dag-conversation-answer-export-menu {
+  border-color: var(--color-border, #ebebeb);
+  background: var(--color-card, #fff);
+}
+
+.dag-editor-root .dag-conversation-answer-export-item {
+  font-family: var(--font-nav, "Inter", system-ui, sans-serif);
+  font-size: 0.75rem;
+}
+
+.dag-editor-root .dag-conversation-answer-subtitle {
+  font-family: var(--font-nav, "Inter", system-ui, sans-serif);
+  font-size: 0.75rem;
+}
+
+.dag-editor-root .dag-conversation-answer-next-chips {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.dag-editor-root .dag-conversation-answer-next-chip {
+  font-family: var(--font-nav, "Inter", system-ui, sans-serif);
+  font-size: 0.75rem;
+  padding: 0.35rem 0.65rem;
+  border: 1px solid var(--color-border, #ebebeb);
+  border-radius: 999px;
+  background: var(--color-card, #fff);
+  cursor: pointer;
+  white-space: nowrap;
+  max-width: none;
+}
+
+.dag-editor-root .dag-conversation-answer-actions-left {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  flex-wrap: wrap;
+}
+
+.dag-editor-root .dag-conversation-answer-btn {
+  font-family: var(--font-nav, "Inter", system-ui, sans-serif);
+  font-size: 0.75rem;
+  padding: 0.35rem 0.65rem;
+}
+
+/* ── Shared query actions (composer, clarifications) ───────────────────────── */
+
+.dag-query-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 2rem;
+  padding: 0 0.875rem;
+  border: 1px solid var(--color-border, #ebebeb);
+  border-radius: var(--radius-md, 8px);
+  background: var(--color-card, #fff);
+  color: var(--color-foreground, #1c1917);
+  font-family: var(--font-nav, "Inter", system-ui, sans-serif);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.dag-query-action-btn:hover:not(:disabled) {
+  border-color: #d4d4d4;
+  background: var(--color-muted, #fafafa);
+}
+
+.dag-query-action-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.dag-query-action-btn--emphasis {
+  font-weight: 600;
+}
+
+/* ── Clarifications ────────────────────────────────────────────────────────── */
+
+.dag-editor-root .dag-clarification-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.875rem;
+  border: 1px solid var(--color-border, #ebebeb);
+  border-radius: var(--radius-lg, 10px);
+  background: var(--color-card, #fff);
+}
+
+.dag-editor-root .dag-clarification-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.dag-editor-root .dag-clarification-lead {
+  margin: 0;
+  font-family: var(--font-nav, "Inter", system-ui, sans-serif);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--color-muted-foreground, #78716c);
+}
+
+.dag-editor-root .dag-clarification-concept {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border: 1px solid var(--color-border, #ebebeb);
+  border-radius: var(--radius-md, 8px);
+  background: var(--color-muted, #fafafa);
+  border-left-width: 1px;
+}
+
+.dag-editor-root .dag-clarification-term strong {
+  font-family: var(--font-nav, "Inter", system-ui, sans-serif);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-foreground, #1c1917);
+}
+
+.dag-editor-root .dag-clarification-reason {
+  font-family: var(--font-nav, "Inter", system-ui, sans-serif);
+  font-size: 0.75rem;
+  color: var(--color-muted-foreground, #78716c);
+  line-height: 1.45;
+}
+
+.dag-editor-root .dag-clarification-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.dag-editor-root .dag-clarification-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.45rem 0.55rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm, 5px);
+  font-family: var(--font-nav, "Inter", system-ui, sans-serif);
+  font-size: 0.8125rem;
+  color: var(--color-foreground, #1c1917);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.dag-editor-root .dag-clarification-option:hover {
+  background: var(--color-card, #fff);
+  border-color: var(--color-border, #ebebeb);
+}
+
+.dag-editor-root .dag-clarification-option input[type="radio"] {
+  accent-color: #78716c;
+  margin-top: 0.15rem;
+  flex-shrink: 0;
+}
+
+.dag-editor-root .dag-clarification-custom {
+  font-family: var(--font-nav, "Inter", system-ui, sans-serif);
+  font-size: 0.8125rem;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid var(--color-border, #ebebeb);
+  border-radius: var(--radius-md, 8px);
+  background: var(--color-card, #fff);
+  color: var(--color-foreground, #1c1917);
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.dag-editor-root .dag-clarification-custom:focus {
+  border-color: #d4d4d4;
+  background: var(--color-muted, #fafafa);
+}
+
+.dag-editor-root .dag-clarification-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding-top: 0.25rem;
+}
+
+/* ── Composer ───────────────────────────────────────────────────────────────── */
+
+.dag-editor-root .dag-conversation-input-area {
+  border-top: 1px solid var(--color-border, #ebebeb);
+  padding: 14px 20px 16px;
+  background: var(--color-background, #fefefe);
+  gap: 0.5rem;
+}
+
+.dag-editor-root .dag-conversation-meta {
+  display: none;
+}
+
+.dag-editor-root .dag-conversation-textarea {
+  font-family: var(--font-nav, "Inter", system-ui, sans-serif);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  min-height: 72px;
+  padding: 0.75rem 0.875rem;
+  border-color: var(--color-border, #ebebeb);
+  border-radius: var(--radius-md, 8px);
+  background: var(--color-card, #fff);
+}
+
+.dag-query-composer-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.dag-query-composer-left {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.dag-computation-graph-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  height: 2rem;
+  padding: 0 0.625rem;
+  border: 1px solid var(--color-border, #ebebeb);
+  border-radius: var(--radius-md, 8px);
+  background: var(--color-card, #fff);
+  color: var(--color-muted-foreground, #78716c);
+  font-family: var(--font-nav, "Inter", system-ui, sans-serif);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: normal;
+  text-transform: none;
+  cursor: pointer;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+}
+
+.dag-computation-graph-toggle:hover:not(:disabled) {
+  border-color: #d4d4d4;
+  background: var(--color-muted, #fafafa);
+  color: var(--color-foreground, #1c1917);
+}
+
+.dag-computation-graph-toggle.active {
+  border-color: #d4d4d4;
+  background: var(--color-muted, #fafafa);
+  color: var(--color-foreground, #1c1917);
+}
+
+.dag-computation-graph-toggle:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.dag-computation-graph-toggle-label {
+  white-space: nowrap;
+  user-select: none;
+}
+
+.dag-computation-graph-switch {
+  position: relative;
+  display: inline-block;
+  width: 1.75rem;
+  height: 1rem;
+  border-radius: 999px;
+  background: #d4d4d4;
+  transition: background 0.2s ease;
+  flex-shrink: 0;
+}
+
+.dag-computation-graph-toggle.active .dag-computation-graph-switch {
+  background: #737373;
+}
+
+.dag-computation-graph-switch-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.12);
+  transition: transform 0.2s ease;
+}
+
+.dag-computation-graph-toggle.active .dag-computation-graph-switch-thumb {
+  transform: translateX(0.75rem);
+}
+
+.dag-computation-graph-tooltip {
+  position: fixed;
+  z-index: 1200;
+  width: min(18rem, calc(100vw - 2rem));
+  padding: 0.625rem 0.75rem;
+  border: 1px solid var(--color-border, #ebebeb);
+  border-radius: var(--radius-md, 8px);
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.1);
+  transform: translate(-50%, calc(-100% - 0.5rem));
+  pointer-events: none;
+}
+
+.dag-computation-graph-tooltip--left {
+  transform: translate(calc(-100% - 0.5rem), -50%);
+}
+
+.dag-computation-graph-tooltip-beta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-bottom: 0.375rem;
+  padding: 0.125rem 0.4375rem;
+  border: 1px solid #bbf7d0;
+  border-radius: 999px;
+  background: #f0fdf4;
+  color: #166534;
+  font-family: var(--font-nav, "Inter", system-ui, sans-serif);
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.dag-computation-graph-tooltip-body,
+.dag-computation-graph-tooltip-foot {
+  margin: 0;
+  font-family: var(--font-nav, "Inter", system-ui, sans-serif);
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: var(--color-foreground, #1c1917);
+}
+
+.dag-computation-graph-tooltip-body {
+  margin-bottom: 0.5rem;
+}
+
+.dag-computation-graph-tooltip-body--solo {
+  margin-bottom: 0;
+}
+
+.dag-computation-graph-tooltip-foot {
+  color: var(--color-muted-foreground, #78716c);
+  font-size: 0.6875rem;
+}
+
+.dag-query-composer-ask {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  height: 2rem;
+  padding: 0 0.875rem;
+  border: 1px solid var(--color-border, #ebebeb);
+  border-radius: var(--radius-md, 8px);
+  background: var(--color-card, #fff);
+  color: var(--color-foreground, #1c1917);
+  font-family: var(--font-nav, "Inter", system-ui, sans-serif);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, transform 0.1s;
+  flex-shrink: 0;
+}
+
+.dag-query-composer-ask:hover:not(:disabled) {
+  border-color: #d4d4d4;
+  background: var(--color-muted, #fafafa);
+}
+
+.dag-query-composer-ask:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.dag-query-composer-ask:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.dag-query-composer-ask--stop {
+  border-color: #fecaca;
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.dag-query-composer-hint {
+  font-family: var(--font-nav, "Inter", system-ui, sans-serif);
+  font-size: 0.625rem;
+  font-weight: 500;
+  color: var(--color-muted-foreground, #78716c);
+  opacity: 0.85;
+}
+
+/* ── Canvas evidence pane ──────────────────────────────────────────────────── */
+
+.dag-canvas-header-evidence {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+}
+
+.dag-canvas-header-evidence-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex: 1;
+}
+
+.dag-canvas-evidence-label {
+  flex-shrink: 0;
+  font-family: var(--font-nav, "Inter", system-ui, sans-serif);
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--color-muted-foreground, #78716c);
+}
+
+.dag-canvas-header-evidence-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.dag-canvas-mode-btn:disabled {
+  opacity: 0.38;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.dag-canvas-pin-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: 1px solid var(--color-border, #ebebeb);
+  border-radius: var(--radius-md, 8px);
+  background: var(--color-card, #fff);
+  color: var(--color-muted-foreground, #78716c);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+}
+
+.dag-canvas-pin-btn:hover {
+  border-color: #d4d4d4;
+  background: var(--color-muted, #fafafa);
+  color: var(--color-foreground, #1c1917);
+}
+
+.dag-canvas-edit-graph-btn {
+  height: 2rem;
+  padding: 0 0.65rem;
+  border: 1px solid var(--color-border, #ebebeb);
+  border-radius: var(--radius-md, 8px);
+  background: var(--color-card, #fff);
+  color: var(--color-muted-foreground, #78716c);
+  font-family: var(--font-nav, "Inter", system-ui, sans-serif);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+}
+
+.dag-canvas-edit-graph-btn:hover,
+.dag-canvas-edit-graph-btn.active {
+  border-color: #d4d4d4;
+  background: var(--color-muted, #fafafa);
+  color: var(--color-foreground, #1c1917);
+}
+
+.dag-query-status-dots {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.dag-query-status-dots .dag-query-bar-api-dot {
+  width: 7px;
+  height: 7px;
+}
+
+.dag-canvas-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 2rem;
+  text-align: center;
+}
+
+.dag-canvas-empty-state-title {
+  margin: 0;
+  font-family: var(--font-nav, "Inter", system-ui, sans-serif);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--color-foreground, #1c1917);
+}
+
+.dag-canvas-empty-state-hint {
+  margin: 0;
+  font-family: var(--font-nav, "Inter", system-ui, sans-serif);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--color-muted-foreground, #78716c);
+  max-width: 22rem;
+}

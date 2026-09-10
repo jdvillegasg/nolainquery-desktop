@@ -1,0 +1,106 @@
+{
+  "name": "What is the month-over-month revenue growth rate for United Kingdom in 2010?",
+  "version": "1",
+  "dag": {
+    "graph_id": "b7c8d9e0-f1a2-3456-bcde-789012345678",
+    "nodes": [
+      {
+        "id": "node_0",
+        "op": "filter_extract",
+        "params": {
+          "column": "Quantity",
+          "condition": "Country == 'United Kingdom' and InvoiceDate.str.startswith('2010')"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_1",
+        "op": "filter_extract",
+        "params": {
+          "column": "Price",
+          "condition": "Country == 'United Kingdom' and InvoiceDate.str.startswith('2010')"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_2",
+        "op": "multiply",
+        "params": {},
+        "inputs": [
+          "node_0",
+          "node_1"
+        ]
+      },
+      {
+        "id": "node_3",
+        "op": "filter_extract",
+        "params": {
+          "column": "InvoiceDate",
+          "condition": "Country == 'United Kingdom' and InvoiceDate.str.startswith('2010')"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_4",
+        "op": "to_datetime",
+        "params": {},
+        "inputs": [
+          "node_3"
+        ]
+      },
+      {
+        "id": "node_5",
+        "op": "truncate_to",
+        "params": {
+          "unit": "month"
+        },
+        "inputs": [
+          "node_4"
+        ]
+      },
+      {
+        "id": "node_6",
+        "op": "groupby_agg",
+        "params": {
+          "groupby_columns": [
+            "node_5"
+          ],
+          "agg_column": "node_2",
+          "agg_function": "sum"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_7",
+        "op": "sort_values",
+        "params": {
+          "ascending": true
+        },
+        "inputs": [
+          "node_6"
+        ]
+      },
+      {
+        "id": "node_8",
+        "op": "shift",
+        "params": {
+          "periods": 1
+        },
+        "inputs": [
+          "node_7"
+        ]
+      },
+      {
+        "id": "node_9",
+        "op": "percentage_change",
+        "params": {},
+        "inputs": [
+          "node_8",
+          "node_7"
+        ]
+      }
+    ],
+    "output_node": "node_9"
+  },
+  "python_code": "# Filter for United Kingdom and 2010\nuk_2010 = df[(df['Country'] == 'United Kingdom') & (df['InvoiceDate'].str.startswith('2010'))].copy()\n\n# Create a revenue column\nuk_2010['Revenue'] = uk_2010['Quantity'] * uk_2010['Price']\n\n# Extract year-month period\nuk_2010['YearMonth'] = uk_2010['InvoiceDate'].str[:7]\n\n# Aggregate revenue by month\nmonthly_revenue = uk_2010.groupby('YearMonth')['Revenue'].sum().reset_index()\nmonthly_revenue.columns = ['YearMonth', 'Revenue']\n\n# Sort by month\nmonthly_revenue = monthly_revenue.sort_values('YearMonth').reset_index(drop=True)\n\n# Calculate month-over-month growth rate\nmonthly_revenue['PrevRevenue'] = monthly_revenue['Revenue'].shift(1)\nmonthly_revenue['GrowthRate'] = (monthly_revenue['Revenue'] - monthly_revenue['PrevRevenue']) / monthly_revenue['PrevRevenue']\n\n# Store the result\nresult = monthly_revenue[['YearMonth', 'Revenue', 'GrowthRate']]"
+}

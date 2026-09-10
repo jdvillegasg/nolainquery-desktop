@@ -1,0 +1,101 @@
+.visualization-view,
+.visualization-empty {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+  padding: 12px 14px;
+  background: #ffffff;
+}
+
+.visualization-view-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.visualization-view h2,
+.visualization-empty h2 {
+  margin: 4px 0 2px;
+  color: var(--text-primary);
+  font-family: var(--font-hero);
+  font-size: 16px;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+}
+
+.visualization-view p,
+.visualization-empty p {
+  max-width: 620px;
+  margin: 0;
+  color: var(--text-secondary);
+  font-family: var(--font-ui);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.visualization-chart-card {
+  flex: 1 1 auto;
+  min-height: 420px;
+  display: flex;
+  flex-direction: column;
+  padding: 16px 14px 10px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  background: #ffffff;
+  overflow: visible;
+}
+
+.visualization-chart-stage {
+  position: relative;
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 420px;
+  overflow: visible;
+}
+
+.visualization-y-axis-label {
+  /* Match Recharts insideLeft: YAxis starts at margin.left (52), label offset 5. */
+  position: absolute;
+  left: 57px;
+  top: 50%;
+  z-index: 1;
+  color: #666666;
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1;
+  pointer-events: none;
+  transform: translate(-50%, -50%) rotate(-90deg);
+  transform-origin: center center;
+  white-space: nowrap;
+}
+
+.visualization-chart-plot {
+  width: 100%;
+  flex-shrink: 0;
+  overflow: visible;
+}
+
+.visualization-empty {
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.visualization-embedded-title {
+  margin: 0 0 4px;
+  color: var(--text-primary);
+  font-family: var(--font-hero);
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.visualization-embedded-meta {
+  margin: 0 0 8px;
+  color: var(--text-secondary);
+  font-size: 12px;
+}

@@ -1,0 +1,241 @@
+{
+  "name": "Gini coefficient of revenue distribution in 2009.",
+  "version": "1",
+  "dag": {
+    "graph_id": "c4d5e6f7-a8b9-0123-cdef-234567890123",
+    "nodes": [
+      {
+        "id": "node_0",
+        "op": "filter_extract",
+        "params": {
+          "column": "Price",
+          "condition": "InvoiceDate.str.startswith('2009')"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_1",
+        "op": "filter_extract",
+        "params": {
+          "column": "Quantity",
+          "condition": "InvoiceDate.str.startswith('2009')"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_2",
+        "op": "multiply",
+        "params": {},
+        "inputs": [
+          "node_0",
+          "node_1"
+        ]
+      },
+      {
+        "id": "node_3",
+        "op": "filter_extract",
+        "params": {
+          "column": "Customer ID",
+          "condition": "InvoiceDate.str.startswith('2009')"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_4",
+        "op": "isnan",
+        "params": {},
+        "inputs": [
+          "node_3"
+        ]
+      },
+      {
+        "id": "node_5",
+        "op": "logical_not",
+        "params": {},
+        "inputs": [
+          "node_4"
+        ]
+      },
+      {
+        "id": "node_6",
+        "op": "load_constant",
+        "params": {
+          "value": 0
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_7",
+        "op": "gt",
+        "params": {},
+        "inputs": [
+          "node_2",
+          "node_6"
+        ]
+      },
+      {
+        "id": "node_8",
+        "op": "logical_and",
+        "params": {},
+        "inputs": [
+          "node_5",
+          "node_7"
+        ]
+      },
+      {
+        "id": "node_9",
+        "op": "index",
+        "params": {
+          "indices": "node_8"
+        },
+        "inputs": [
+          "node_2"
+        ]
+      },
+      {
+        "id": "node_10",
+        "op": "groupby_agg",
+        "params": {
+          "groupby_column": "Customer ID",
+          "agg_column": "node_9",
+          "agg_function": "sum"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_11",
+        "op": "sort_values",
+        "params": {
+          "ascending": true
+        },
+        "inputs": [
+          "node_10"
+        ]
+      },
+      {
+        "id": "node_12",
+        "op": "count",
+        "params": {},
+        "inputs": [
+          "node_11"
+        ]
+      },
+      {
+        "id": "node_13",
+        "op": "sum",
+        "params": {},
+        "inputs": [
+          "node_11"
+        ]
+      },
+      {
+        "id": "node_14",
+        "op": "rank",
+        "params": {
+          "ascending": true
+        },
+        "inputs": [
+          "node_11"
+        ]
+      },
+      {
+        "id": "node_15",
+        "op": "load_constant",
+        "params": {
+          "value": 1
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_16",
+        "op": "add",
+        "params": {},
+        "inputs": [
+          "node_14",
+          "node_15"
+        ]
+      },
+      {
+        "id": "node_17",
+        "op": "multiply",
+        "params": {},
+        "inputs": [
+          "node_16",
+          "node_11"
+        ]
+      },
+      {
+        "id": "node_18",
+        "op": "sum",
+        "params": {},
+        "inputs": [
+          "node_17"
+        ]
+      },
+      {
+        "id": "node_19",
+        "op": "multiply",
+        "params": {},
+        "inputs": [
+          "node_12",
+          "node_13"
+        ]
+      },
+      {
+        "id": "node_20",
+        "op": "load_constant",
+        "params": {
+          "value": 2
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_21",
+        "op": "multiply",
+        "params": {},
+        "inputs": [
+          "node_18",
+          "node_20"
+        ]
+      },
+      {
+        "id": "node_22",
+        "op": "divide",
+        "params": {},
+        "inputs": [
+          "node_21",
+          "node_19"
+        ]
+      },
+      {
+        "id": "node_23",
+        "op": "add",
+        "params": {},
+        "inputs": [
+          "node_12",
+          "node_15"
+        ]
+      },
+      {
+        "id": "node_24",
+        "op": "divide",
+        "params": {},
+        "inputs": [
+          "node_23",
+          "node_12"
+        ]
+      },
+      {
+        "id": "node_25",
+        "op": "subtract",
+        "params": {},
+        "inputs": [
+          "node_22",
+          "node_24"
+        ]
+      }
+    ],
+    "output_node": "node_25"
+  },
+  "python_code": "# Filter data for 2009\ndf_2009 = df[df['InvoiceDate'].str.startswith('2009')].copy()\n\n# Calculate revenue per transaction (Price * Quantity)\ndf_2009['Revenue'] = df_2009['Price'] * df_2009['Quantity']\n\n# Remove rows with missing Customer ID or negative revenue (returns)\ndf_2009 = df_2009.dropna(subset=['Customer ID'])\ndf_2009 = df_2009[df_2009['Revenue'] > 0]\n\n# Calculate total revenue per customer\ncustomer_revenue = df_2009.groupby('Customer ID')['Revenue'].sum().reset_index()\ncustomer_revenue.columns = ['Customer ID', 'TotalRevenue']\n\n# Sort by revenue ascending for Gini calculation\ncustomer_revenue = customer_revenue.sort_values('TotalRevenue').reset_index(drop=True)\n\n# Calculate Gini coefficient\nn = len(customer_revenue)\nif n > 0:\n    total_revenue = customer_revenue['TotalRevenue'].sum()\n    cumulative_revenue = customer_revenue['TotalRevenue'].cumsum()\n    # Gini = (2 * sum(i * y_i) / (n * sum(y_i))) - (n + 1) / n\n    numerator = 2 * sum((i + 1) * y for i, y in enumerate(customer_revenue['TotalRevenue']))\n    denominator = n * total_revenue\n    gini = (numerator / denominator) - (n + 1) / n\n    result = gini\nelse:\n    result = None"
+}

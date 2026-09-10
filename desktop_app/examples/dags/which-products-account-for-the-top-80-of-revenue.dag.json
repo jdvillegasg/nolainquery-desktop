@@ -1,0 +1,91 @@
+{
+  "name": "Which products account for the top 80% of revenue?",
+  "version": "1",
+  "dag": {
+    "graph_id": "550e8400-e29b-41d4-a716-446655440000",
+    "nodes": [
+      {
+        "id": "node_0",
+        "op": "filter_extract",
+        "params": {
+          "column": "Quantity"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_1",
+        "op": "filter_extract",
+        "params": {
+          "column": "Price"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_2",
+        "op": "multiply",
+        "params": {},
+        "inputs": [
+          "node_0",
+          "node_1"
+        ]
+      },
+      {
+        "id": "node_3",
+        "op": "groupby_agg",
+        "params": {
+          "groupby_column": "StockCode",
+          "agg_column": "node_2",
+          "agg_function": "sum"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_4",
+        "op": "sort_values",
+        "params": {
+          "ascending": false
+        },
+        "inputs": [
+          "node_3"
+        ]
+      },
+      {
+        "id": "node_5",
+        "op": "cumshare",
+        "params": {},
+        "inputs": [
+          "node_4"
+        ]
+      },
+      {
+        "id": "node_6",
+        "op": "load_constant",
+        "params": {
+          "value": 0.8
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_7",
+        "op": "le",
+        "params": {},
+        "inputs": [
+          "node_5",
+          "node_6"
+        ]
+      },
+      {
+        "id": "node_8",
+        "op": "index",
+        "params": {
+          "indices": "node_7"
+        },
+        "inputs": [
+          "node_4"
+        ]
+      }
+    ],
+    "output_node": "node_8"
+  },
+  "python_code": "# Calculate revenue per product (StockCode)\ndf['Revenue'] = df['Quantity'] * df['Price']\n\n# Group by product and sum revenue\nproduct_revenue = df.groupby('StockCode', as_index=False)['Revenue'].sum()\n\n# Sort by revenue descending\nproduct_revenue = product_revenue.sort_values('Revenue', ascending=False).reset_index(drop=True)\n\n# Calculate total revenue\ntotal_revenue = product_revenue['Revenue'].sum()\n\n# Calculate cumulative revenue percentage\nproduct_revenue['CumulativeRevenuePct'] = product_revenue['Revenue'].cumsum() / total_revenue\n\n# Filter products that account for top 80% of revenue\nresult = product_revenue[product_revenue['CumulativeRevenuePct'] <= 0.80].copy()"
+}

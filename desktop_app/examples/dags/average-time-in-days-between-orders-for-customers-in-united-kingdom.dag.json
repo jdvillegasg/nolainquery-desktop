@@ -1,0 +1,163 @@
+{
+  "name": "Average time (in days) between orders for customers in United Kingdom.",
+  "version": "1",
+  "dag": {
+    "graph_id": "c9d0e1f2-a3b4-5678-cdef-901234567890",
+    "nodes": [
+      {
+        "id": "node_0",
+        "op": "filter_extract",
+        "params": {
+          "column": "InvoiceDate",
+          "condition": "Country == 'United Kingdom'"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_1",
+        "op": "filter_extract",
+        "params": {
+          "column": "Customer ID",
+          "condition": "Country == 'United Kingdom'"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_2",
+        "op": "to_datetime",
+        "params": {
+          "format": "%Y-%m-%d %H:%M:%S"
+        },
+        "inputs": [
+          "node_0"
+        ]
+      },
+      {
+        "id": "node_3",
+        "op": "isnan",
+        "params": {},
+        "inputs": [
+          "node_1"
+        ]
+      },
+      {
+        "id": "node_4",
+        "op": "isnan",
+        "params": {},
+        "inputs": [
+          "node_2"
+        ]
+      },
+      {
+        "id": "node_5",
+        "op": "logical_or",
+        "params": {},
+        "inputs": [
+          "node_3",
+          "node_4"
+        ]
+      },
+      {
+        "id": "node_6",
+        "op": "logical_not",
+        "params": {},
+        "inputs": [
+          "node_5"
+        ]
+      },
+      {
+        "id": "node_7",
+        "op": "index",
+        "params": {
+          "indices": "node_6"
+        },
+        "inputs": [
+          "node_2"
+        ]
+      },
+      {
+        "id": "node_8",
+        "op": "groupby_agg",
+        "params": {
+          "groupby_column": "Customer ID",
+          "agg_column": "node_7",
+          "agg_function": "min"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_9",
+        "op": "groupby_agg",
+        "params": {
+          "groupby_column": "Customer ID",
+          "agg_column": "node_7",
+          "agg_function": "max"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_10",
+        "op": "groupby_agg",
+        "params": {
+          "groupby_column": "Customer ID",
+          "agg_column": "node_7",
+          "agg_function": "count"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_11",
+        "op": "subtract",
+        "params": {},
+        "inputs": [
+          "node_9",
+          "node_8"
+        ]
+      },
+      {
+        "id": "node_12",
+        "op": "timedelta_to_days",
+        "params": {},
+        "inputs": [
+          "node_11"
+        ]
+      },
+      {
+        "id": "node_13",
+        "op": "load_constant",
+        "params": {
+          "value": 1
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_14",
+        "op": "subtract",
+        "params": {},
+        "inputs": [
+          "node_10",
+          "node_13"
+        ]
+      },
+      {
+        "id": "node_15",
+        "op": "divide",
+        "params": {},
+        "inputs": [
+          "node_12",
+          "node_14"
+        ]
+      },
+      {
+        "id": "node_16",
+        "op": "mean",
+        "params": {},
+        "inputs": [
+          "node_15"
+        ]
+      }
+    ],
+    "output_node": "node_16"
+  },
+  "python_code": "# Filter for United Kingdom customers and drop rows with missing Customer ID or InvoiceDate\nuk_orders = df[df['Country'] == 'United Kingdom'].copy()\nuk_orders = uk_orders.dropna(subset=['Customer ID', 'InvoiceDate'])\n\n# Convert InvoiceDate to datetime\nuk_orders['InvoiceDate'] = pd.to_datetime(uk_orders['InvoiceDate'])\n\n# For each customer, get the sorted list of order dates (per invoice)\ncustomer_order_dates = uk_orders.groupby('Customer ID')['InvoiceDate'].apply(lambda x: x.sort_values().unique()).reset_index()\n\n# Compute the difference in days between consecutive orders for each customer\ndef avg_days_between_orders(dates):\n    if len(dates) < 2:\n        return None\n    diffs = (dates[1:] - dates[:-1]).astype('timedelta64[D]').astype(float)\n    return diffs.mean()\n\ncustomer_order_dates['avg_days'] = customer_order_dates['InvoiceDate'].apply(avg_days_between_orders)\n\n# Compute the overall average across all customers\nresult = customer_order_dates['avg_days'].mean()"
+}

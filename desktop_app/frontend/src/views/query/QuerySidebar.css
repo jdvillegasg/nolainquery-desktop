@@ -1,0 +1,96 @@
+/* ── Query sidebar (Screen 2) — when Ask Queries is active ─────────────────── */
+
+.app-container--query .sidebar-nav-item:hover {
+  background: #f5f5f5;
+  color: #1c1917;
+}
+
+.app-container--query .sidebar-nav-item.active {
+  color: #1c1917;
+  background: #f0f0f0;
+  font-weight: 600;
+}
+
+.app-container--query .sidebar-new-query-btn {
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #78716c;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 4px 8px;
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s;
+}
+
+.app-container--query .sidebar-new-query-btn:hover {
+  color: #1c1917;
+  background: #f5f5f5;
+}
+
+.app-container--query .sidebar-show-more-btn {
+  border-color: #ebebeb;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.app-container--query .sidebar-show-more-btn:hover {
+  border-color: #d4d4d4;
+  background: #f5f5f5;
+  color: #1c1917;
+}
+
+.app-container--query .sidebar-thread-row {
+  border: 1px solid transparent;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.app-container--query .sidebar-thread-row:hover {
+  background: #fafafa;
+}
+
+.app-container--query .sidebar-thread-row.active {
+  background: #f5f5f5;
+  border-color: #e7e5e4;
+}
+
+.app-container--query .sidebar-thread-item {
+  cursor: pointer;
+}
+
+.app-container--query .sidebar-thread-action-btn {
+  cursor: pointer;
+  border-radius: 5px;
+  transition: all 0.2s ease;
+}
+
+.app-container--query .sidebar-thread-action-btn:hover {
+  color: #1c1917;
+  background: #f0f0f0;
+  border-color: #ebebeb;
+}
+
+.app-container--query .sidebar-thread-action-btn--danger:hover {
+  color: #dc2626;
+  border-color: #fecaca;
+  background: #fef2f2;
+}
+
+.app-container--query .sidebar-thread-rename-input {
+  border-color: #ebebeb;
+  border-radius: 8px;
+}
+
+.app-container--query .sidebar-thread-rename-input:focus {
+  border-color: #d4d4d4;
+  box-shadow: none;
+}
+
+.app-container--query .sidebar-thread-item-title,
+.app-container--query .sidebar-thread-item-time,
+.app-container--query .sidebar-thread-empty,
+.app-container--query .sidebar-eyebrow {
+  font-family: "Inter", system-ui, sans-serif;
+}

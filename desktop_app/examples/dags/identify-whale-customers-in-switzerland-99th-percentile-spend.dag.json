@@ -1,0 +1,77 @@
+{
+  "name": "Identify 'Whale' customers in Switzerland (99th percentile spend).",
+  "version": "1",
+  "dag": {
+    "graph_id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+    "nodes": [
+      {
+        "id": "node_0",
+        "op": "filter_extract",
+        "params": {
+          "column": "Price",
+          "condition": "Country == 'Switzerland'"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_1",
+        "op": "filter_extract",
+        "params": {
+          "column": "Quantity",
+          "condition": "Country == 'Switzerland'"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_2",
+        "op": "multiply",
+        "params": {},
+        "inputs": [
+          "node_0",
+          "node_1"
+        ]
+      },
+      {
+        "id": "node_3",
+        "op": "groupby_agg",
+        "params": {
+          "groupby_column": "Customer ID",
+          "agg_column": "node_2",
+          "agg_function": "sum"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_4",
+        "op": "quantile",
+        "params": {
+          "q": 0.99
+        },
+        "inputs": [
+          "node_3"
+        ]
+      },
+      {
+        "id": "node_5",
+        "op": "gt",
+        "params": {},
+        "inputs": [
+          "node_3",
+          "node_4"
+        ]
+      },
+      {
+        "id": "node_6",
+        "op": "index",
+        "params": {
+          "indices": "node_5"
+        },
+        "inputs": [
+          "node_3"
+        ]
+      }
+    ],
+    "output_node": "node_6"
+  },
+  "python_code": "# Filter for Switzerland customers\nswitzerland_df = df[df['Country'] == 'Switzerland'].copy()\n\n# Calculate total spend per customer (Price * Quantity)\nswitzerland_df['TotalSpend'] = switzerland_df['Price'] * switzerland_df['Quantity']\n\n# Aggregate total spend per customer\ncustomer_spend = switzerland_df.groupby('Customer ID')['TotalSpend'].sum().reset_index()\ncustomer_spend.columns = ['Customer ID', 'TotalSpend']\n\n# Calculate the 99th percentile threshold\nthreshold = customer_spend['TotalSpend'].quantile(0.99)\n\n# Identify whale customers (above 99th percentile)\nwhale_customers = customer_spend[customer_spend['TotalSpend'] > threshold].copy()\n\n# Store result with customer IDs and their total spend\nresult = whale_customers"
+}

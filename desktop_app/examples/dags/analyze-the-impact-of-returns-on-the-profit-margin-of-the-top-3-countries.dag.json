@@ -1,0 +1,59 @@
+{
+  "name": "Analyze the impact of returns on the profit margin of the top 3 countries.",
+  "version": "1",
+  "dag": {
+    "graph_id": "c9d0e1f2-a3b4-5678-9012-cdef12345678",
+    "nodes": [
+      {
+        "id": "node_0",
+        "op": "filter_extract",
+        "params": {
+          "column": "Price",
+          "condition": null
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_1",
+        "op": "filter_extract",
+        "params": {
+          "column": "Quantity",
+          "condition": null
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_2",
+        "op": "multiply",
+        "params": {},
+        "inputs": [
+          "node_0",
+          "node_1"
+        ]
+      },
+      {
+        "id": "node_3",
+        "op": "groupby_agg",
+        "params": {
+          "groupby_column": "Country",
+          "agg_column": "node_2",
+          "agg_function": "sum"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_4",
+        "op": "nlargest",
+        "params": {
+          "n": 3
+        },
+        "inputs": [
+          "node_3"
+        ]
+      }
+    ],
+    "output_node": "node_4"
+  },
+  "python_code": "# Identify returns (negative Quantity) and compute profit margin impact\n# Profit margin = (Price * Quantity) per transaction, aggregated by country\n\n# Create a copy to work with\ndf_analysis = df.copy()\n\n# Calculate revenue per line item (Price * Quantity)\ndf_analysis['Revenue'] = df_analysis['Price'] * df_analysis['Quantity']\n\n# Separate returns (negative Quantity) from sales (positive Quantity)\ndf_returns = df_analysis[df_analysis['Quantity'] < 0].copy()\ndf_sales = df_analysis[df_analysis['Quantity'] >= 0].copy()\n\n# Compute total revenue and total returns by country\nsales_by_country = df_sales.groupby('Country')['Revenue'].sum().reset_index()\nreturns_by_country = df_returns.groupby('Country')['Revenue'].sum().reset_index()\n\n# Merge sales and returns data\ncountry_metrics = sales_by_country.merge(returns_by_country, on='Country', how='left', suffixes=('_sales', '_returns'))\ncountry_metrics['Revenue_returns'] = country_metrics['Revenue_returns'].fillna(0)\n\n# Calculate net revenue and profit margin impact\ncountry_metrics['Net_Revenue'] = country_metrics['Revenue_sales'] + country_metrics['Revenue_returns']\ncountry_metrics['Return_Impact_Pct'] = (country_metrics['Revenue_returns'] / country_metrics['Revenue_sales']) * 100\n\n# Get top 3 countries by total sales revenue\ntop3_countries = country_metrics.nlargest(3, 'Revenue_sales')['Country'].tolist()\n\n# Filter for top 3 countries\nresult = country_metrics[country_metrics['Country'].isin(top3_countries)].sort_values('Revenue_sales', ascending=False).reset_index(drop=True)",
+  "description": "Analyze the impacts of the return."
+}

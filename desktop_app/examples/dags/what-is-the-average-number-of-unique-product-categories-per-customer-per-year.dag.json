@@ -1,0 +1,82 @@
+{
+  "name": "What is the average number of unique product categories per customer per year?",
+  "version": "1",
+  "dag": {
+    "graph_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "nodes": [
+      {
+        "id": "node_0",
+        "op": "filter_extract",
+        "params": {
+          "column": "InvoiceDate"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_1",
+        "op": "to_datetime",
+        "params": {
+          "format": "%Y-%m-%d %H:%M:%S"
+        },
+        "inputs": [
+          "node_0"
+        ]
+      },
+      {
+        "id": "node_2",
+        "op": "extract_year",
+        "params": {},
+        "inputs": [
+          "node_1"
+        ]
+      },
+      {
+        "id": "node_3",
+        "op": "filter_extract",
+        "params": {
+          "column": "Customer ID"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_4",
+        "op": "dropna",
+        "params": {},
+        "inputs": [
+          "node_3"
+        ]
+      },
+      {
+        "id": "node_5",
+        "op": "filter_extract",
+        "params": {
+          "column": "StockCode"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_6",
+        "op": "groupby_agg",
+        "params": {
+          "groupby_columns": [
+            "node_4",
+            "node_2"
+          ],
+          "agg_column": "node_5",
+          "agg_function": "nunique"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_7",
+        "op": "mean",
+        "params": {},
+        "inputs": [
+          "node_6"
+        ]
+      }
+    ],
+    "output_node": "node_7"
+  },
+  "python_code": "# Extract year from InvoiceDate and count unique product categories per customer per year\ndf['InvoiceDate'] = pd.to_datetime(df['InvoiceDate'])\ndf['Year'] = df['InvoiceDate'].dt.year\n\n# Filter out rows with missing Customer ID\ndf_clean = df.dropna(subset=['Customer ID']).copy()\n\n# Count unique product categories (StockCode) per customer per year\ncustomer_year_categories = df_clean.groupby(['Customer ID', 'Year'])['StockCode'].nunique().reset_index()\ncustomer_year_categories.rename(columns={'StockCode': 'unique_categories'}, inplace=True)\n\n# Calculate average number of unique product categories per customer per year\nresult = customer_year_categories['unique_categories'].mean()"
+}

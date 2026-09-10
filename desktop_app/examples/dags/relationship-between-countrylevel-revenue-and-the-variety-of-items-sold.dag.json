@@ -1,0 +1,58 @@
+{
+  "name": "Relationship between country-level revenue and the variety of items sold.",
+  "version": "1",
+  "dag": {
+    "graph_id": "b7c8d9e0-f1a2-3456-bcde-789012345678",
+    "nodes": [
+      {
+        "id": "node_0",
+        "op": "filter_extract",
+        "params": {
+          "column": "Quantity",
+          "condition": null
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_1",
+        "op": "filter_extract",
+        "params": {
+          "column": "Price",
+          "condition": null
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_2",
+        "op": "multiply",
+        "params": {},
+        "inputs": [
+          "node_0",
+          "node_1"
+        ]
+      },
+      {
+        "id": "node_3",
+        "op": "groupby_agg",
+        "params": {
+          "groupby_column": "Country",
+          "agg_column": "node_2",
+          "agg_function": "sum"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_4",
+        "op": "sort_values",
+        "params": {
+          "ascending": false
+        },
+        "inputs": [
+          "node_3"
+        ]
+      }
+    ],
+    "output_node": "node_4"
+  },
+  "python_code": "# Calculate revenue per item (Quantity * Price) and add as a column\ndf_with_revenue = df.copy()\ndf_with_revenue['Revenue'] = df_with_revenue['Quantity'] * df_with_revenue['Price']\n\n# Group by Country to calculate total revenue and variety of items sold\ncountry_stats = df_with_revenue.groupby('Country').agg(\n    total_revenue=('Revenue', 'sum'),\n    item_variety=('StockCode', 'nunique')\n).reset_index()\n\n# Sort by total revenue for better readability\nresult = country_stats.sort_values('total_revenue', ascending=False).reset_index(drop=True)"
+}

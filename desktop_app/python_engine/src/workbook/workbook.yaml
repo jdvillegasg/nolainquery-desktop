@@ -1,0 +1,30 @@
+# Workbook ingest and table-detection defaults.
+#
+# Override the file with NOLAIN_WORKBOOK_CONFIG=/path/to/workbook.yaml
+# or individual keys with NOLAIN_WORKBOOK_<KEY> (e.g. NOLAIN_WORKBOOK_HEADER_SAMPLE_FLOOR=80).
+# Cache directory remains NOLAIN_WORKBOOK_CACHE_DIR.
+#
+# Example: headers on row 45 are missed at the default sample floor of 40.
+# Set header_sample_floor: 80 (or env NOLAIN_WORKBOOK_HEADER_SAMPLE_FLOOR=80).
+#
+# Example: keep the first visible sheet as active instead of the largest:
+#   default_active_table: first_visible
+
+min_data_rows: 2
+min_columns: 2
+min_fill_density: 0.15
+max_unnamed_column_ratio: 0.6
+min_header_confidence: 0.4
+header_scan_rows: 20
+# sample_rows = max(header_scan_rows + min_data_rows + header_sample_padding, header_sample_floor)
+header_sample_padding: 5
+header_sample_floor: 40
+header_consistency_rows: 5
+include_hidden_sheets: false
+materialized_format: parquet
+ingest_version: "4"
+# largest = most rows, then most columns, then name. first_visible = file order.
+default_active_table: largest
+preview_row_cap: 100000
+# Integer columns with fewer distinct values than this are typed categorical.
+identifier_cardinality_max: 20

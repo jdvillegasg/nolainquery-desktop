@@ -1,0 +1,123 @@
+{
+  "name": "Probability of a UK customer buying a 'VINTAGE' item vs a 'CHRISTMAS' item.",
+  "version": "1",
+  "dag": {
+    "graph_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "nodes": [
+      {
+        "id": "node_1",
+        "op": "filter_extract",
+        "params": {
+          "column": "Customer ID",
+          "condition": "Country == 'United Kingdom'"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_2",
+        "op": "nunique",
+        "params": {},
+        "inputs": [
+          "node_1"
+        ]
+      },
+      {
+        "id": "node_3",
+        "op": "filter_extract",
+        "params": {
+          "column": "Customer ID",
+          "condition": "Country == 'United Kingdom' and Description.str.contains('VINTAGE', case=False, na=False)"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_4",
+        "op": "nunique",
+        "params": {},
+        "inputs": [
+          "node_3"
+        ]
+      },
+      {
+        "id": "node_5",
+        "op": "filter_extract",
+        "params": {
+          "column": "Customer ID",
+          "condition": "Country == 'United Kingdom' and Description.str.contains('CHRISTMAS', case=False, na=False)"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_6",
+        "op": "nunique",
+        "params": {},
+        "inputs": [
+          "node_5"
+        ]
+      },
+      {
+        "id": "node_7",
+        "op": "divide",
+        "params": {},
+        "inputs": [
+          "node_4",
+          "node_2"
+        ]
+      },
+      {
+        "id": "node_8",
+        "op": "divide",
+        "params": {},
+        "inputs": [
+          "node_6",
+          "node_2"
+        ]
+      },
+      {
+        "id": "node_9",
+        "op": "load_constant",
+        "params": {
+          "value": "VINTAGE probability: "
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_10",
+        "op": "load_constant",
+        "params": {
+          "value": ", CHRISTMAS probability: "
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_11",
+        "op": "concat_str",
+        "params": {},
+        "inputs": [
+          "node_9",
+          "node_7"
+        ]
+      },
+      {
+        "id": "node_12",
+        "op": "concat_str",
+        "params": {},
+        "inputs": [
+          "node_11",
+          "node_10"
+        ]
+      },
+      {
+        "id": "node_13",
+        "op": "concat_str",
+        "params": {},
+        "inputs": [
+          "node_12",
+          "node_8"
+        ]
+      }
+    ],
+    "output_node": "node_13"
+  },
+  "python_code": "# Filter for UK customers only\nuk_df = df[df['Country'] == 'United Kingdom'].copy()\n\n# Identify vintage and christmas items based on Description containing keywords\nuk_df['item_type'] = None\nuk_df.loc[uk_df['Description'].str.contains('VINTAGE', case=False, na=False), 'item_type'] = 'VINTAGE'\nuk_df.loc[uk_df['Description'].str.contains('CHRISTMAS', case=False, na=False), 'item_type'] = 'CHRISTMAS'\n\n# Remove rows that don't match either category\nfiltered_df = uk_df[uk_df['item_type'].notna()].copy()\n\n# Count unique customers who bought each type\ncustomer_counts = filtered_df.groupby('item_type')['Customer ID'].nunique().reset_index()\ncustomer_counts.columns = ['item_type', 'unique_customers']\n\n# Total unique UK customers\ntotal_uk_customers = uk_df['Customer ID'].nunique()\n\n# Calculate probability for each item type\ncustomer_counts['probability'] = customer_counts['unique_customers'] / total_uk_customers\n\n# Create result as a dictionary or series\nresult = customer_counts.set_index('item_type')['probability']"
+}

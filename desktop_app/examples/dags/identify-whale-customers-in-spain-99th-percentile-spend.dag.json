@@ -1,0 +1,87 @@
+{
+  "name": "Identify 'Whale' customers in Spain (99th percentile spend).",
+  "version": "1",
+  "dag": {
+    "graph_id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+    "nodes": [
+      {
+        "id": "node_0",
+        "op": "filter_extract",
+        "params": {
+          "column": "Price",
+          "condition": "Country == 'Spain'"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_1",
+        "op": "filter_extract",
+        "params": {
+          "column": "Quantity",
+          "condition": "Country == 'Spain'"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_2",
+        "op": "multiply",
+        "params": {},
+        "inputs": [
+          "node_0",
+          "node_1"
+        ]
+      },
+      {
+        "id": "node_3",
+        "op": "groupby_agg",
+        "params": {
+          "groupby_column": "Customer ID",
+          "agg_column": "node_2",
+          "agg_function": "sum"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_4",
+        "op": "quantile",
+        "params": {
+          "q": 0.99
+        },
+        "inputs": [
+          "node_3"
+        ]
+      },
+      {
+        "id": "node_5",
+        "op": "ge",
+        "params": {},
+        "inputs": [
+          "node_3",
+          "node_4"
+        ]
+      },
+      {
+        "id": "node_6",
+        "op": "index",
+        "params": {
+          "indices": "node_5"
+        },
+        "inputs": [
+          "node_3"
+        ]
+      },
+      {
+        "id": "node_7",
+        "op": "sort_values",
+        "params": {
+          "ascending": false
+        },
+        "inputs": [
+          "node_6"
+        ]
+      }
+    ],
+    "output_node": "node_7"
+  },
+  "python_code": "# Filter for Spain customers and drop rows with missing Customer ID\nspain_df = df[df['Country'] == 'Spain'].copy()\nspain_df = spain_df.dropna(subset=['Customer ID'])\n\n# Calculate total spend per customer (Price * Quantity)\nspain_df['TotalSpend'] = spain_df['Price'] * spain_df['Quantity']\n\n# Aggregate total spend per customer\ncustomer_spend = spain_df.groupby('Customer ID')['TotalSpend'].sum().reset_index()\ncustomer_spend.columns = ['Customer ID', 'TotalSpend']\n\n# Calculate the 99th percentile threshold\nthreshold = customer_spend['TotalSpend'].quantile(0.99)\n\n# Identify Whale customers (those above the 99th percentile)\nwhale_customers = customer_spend[customer_spend['TotalSpend'] >= threshold].copy()\n\n# Sort by spend descending\nwhale_customers = whale_customers.sort_values('TotalSpend', ascending=False)\n\nresult = whale_customers"
+}

@@ -1,0 +1,65 @@
+{
+  "name": "Time-series decomposition: Identify seasonality peaks for Switzerland.",
+  "version": "1",
+  "dag": {
+    "graph_id": "b7c8d9e0-f1a2-3456-7890-bcdef1234567",
+    "nodes": [
+      {
+        "id": "node_0",
+        "op": "filter_extract",
+        "params": {
+          "column": "InvoiceDate",
+          "condition": "Country == 'Switzerland'"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_1",
+        "op": "to_datetime",
+        "params": {},
+        "inputs": [
+          "node_0"
+        ]
+      },
+      {
+        "id": "node_2",
+        "op": "extract_month",
+        "params": {},
+        "inputs": [
+          "node_1"
+        ]
+      },
+      {
+        "id": "node_3",
+        "op": "filter_extract",
+        "params": {
+          "column": "Quantity",
+          "condition": "Country == 'Switzerland'"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_4",
+        "op": "groupby_agg",
+        "params": {
+          "groupby_columns": [
+            "node_2"
+          ],
+          "agg_column": "node_3",
+          "agg_function": "sum"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_5",
+        "op": "idxmax",
+        "params": {},
+        "inputs": [
+          "node_4"
+        ]
+      }
+    ],
+    "output_node": "node_5"
+  },
+  "python_code": "# Filter data for Switzerland\nswitzerland_df = df[df['Country'] == 'Switzerland'].copy()\n\n# Convert InvoiceDate to datetime\nswitzerland_df['InvoiceDate'] = pd.to_datetime(switzerland_df['InvoiceDate'])\n\n# Extract month and year for seasonality analysis\nswitzerland_df['YearMonth'] = switzerland_df['InvoiceDate'].dt.to_period('M')\nswitzerland_df['Month'] = switzerland_df['InvoiceDate'].dt.month\n\n# Aggregate total quantity and revenue by month\nmonthly_agg = switzerland_df.groupby('Month').agg(\n    total_quantity=('Quantity', 'sum'),\n    total_revenue=('Price', lambda x: (x * switzerland_df.loc[x.index, 'Quantity']).sum())\n).reset_index()\n\n# Identify seasonality peaks (months with highest quantity and revenue)\npeak_quantity_month = monthly_agg.loc[monthly_agg['total_quantity'].idxmax()]\npeak_revenue_month = monthly_agg.loc[monthly_agg['total_revenue'].idxmax()]\n\n# Create result with peak information\nresult = {\n    'peak_quantity_month': int(peak_quantity_month['Month']),\n    'peak_quantity_value': peak_quantity_month['total_quantity'],\n    'peak_revenue_month': int(peak_revenue_month['Month']),\n    'peak_revenue_value': peak_revenue_month['total_revenue'],\n    'monthly_summary': monthly_agg\n}"
+}

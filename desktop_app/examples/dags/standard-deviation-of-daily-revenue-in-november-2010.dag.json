@@ -1,0 +1,87 @@
+{
+  "name": "Standard deviation of daily revenue in November 2010.",
+  "version": "1",
+  "dag": {
+    "graph_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "nodes": [
+      {
+        "id": "node_0",
+        "op": "filter_extract",
+        "params": {
+          "column": "InvoiceDate",
+          "condition": "InvoiceDate.str.startswith('2010-11')"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_1",
+        "op": "filter_extract",
+        "params": {
+          "column": "Quantity",
+          "condition": "InvoiceDate.str.startswith('2010-11')"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_2",
+        "op": "filter_extract",
+        "params": {
+          "column": "Price",
+          "condition": "InvoiceDate.str.startswith('2010-11')"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_3",
+        "op": "multiply",
+        "params": {},
+        "inputs": [
+          "node_1",
+          "node_2"
+        ]
+      },
+      {
+        "id": "node_4",
+        "op": "to_datetime",
+        "params": {
+          "format": "%Y-%m-%d %H:%M:%S"
+        },
+        "inputs": [
+          "node_0"
+        ]
+      },
+      {
+        "id": "node_5",
+        "op": "truncate_to",
+        "params": {
+          "unit": "day"
+        },
+        "inputs": [
+          "node_4"
+        ]
+      },
+      {
+        "id": "node_6",
+        "op": "groupby_agg",
+        "params": {
+          "groupby_columns": [
+            "node_5"
+          ],
+          "agg_column": "node_3",
+          "agg_function": "sum"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_7",
+        "op": "std",
+        "params": {},
+        "inputs": [
+          "node_6"
+        ]
+      }
+    ],
+    "output_node": "node_7"
+  },
+  "python_code": "# Filter for November 2010\ndf_nov2010 = df[df['InvoiceDate'].str.startswith('2010-11')].copy()\n\n# Calculate revenue per line item\ndf_nov2010['Revenue'] = df_nov2010['Quantity'] * df_nov2010['Price']\n\n# Group by date (extract date part from InvoiceDate) and sum revenue per day\ndf_nov2010['Date'] = df_nov2010['InvoiceDate'].str[:10]\ndaily_revenue = df_nov2010.groupby('Date')['Revenue'].sum().reset_index()\n\n# Calculate standard deviation of daily revenue\nresult = daily_revenue['Revenue'].std()"
+}

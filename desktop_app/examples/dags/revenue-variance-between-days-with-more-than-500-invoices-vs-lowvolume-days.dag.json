@@ -1,0 +1,143 @@
+{
+  "name": "Revenue variance between days with more than 500 invoices vs low-volume days.",
+  "version": "1",
+  "dag": {
+    "graph_id": "550e8400-e29b-41d4-a716-446655440001",
+    "nodes": [
+      {
+        "id": "node_0",
+        "op": "filter_extract",
+        "params": {
+          "column": "InvoiceDate",
+          "condition": null
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_1",
+        "op": "to_datetime",
+        "params": {
+          "format": "%Y-%m-%d %H:%M:%S"
+        },
+        "inputs": [
+          "node_0"
+        ]
+      },
+      {
+        "id": "node_2",
+        "op": "truncate_to",
+        "params": {
+          "unit": "day"
+        },
+        "inputs": [
+          "node_1"
+        ]
+      },
+      {
+        "id": "node_3",
+        "op": "filter_extract",
+        "params": {
+          "column": "Quantity",
+          "condition": null
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_4",
+        "op": "filter_extract",
+        "params": {
+          "column": "Price",
+          "condition": null
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_5",
+        "op": "multiply",
+        "params": {},
+        "inputs": [
+          "node_3",
+          "node_4"
+        ]
+      },
+      {
+        "id": "node_6",
+        "op": "groupby_agg",
+        "params": {
+          "groupby_columns": [
+            "node_2"
+          ],
+          "agg_column": "Invoice",
+          "agg_function": "nunique"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_7",
+        "op": "groupby_agg",
+        "params": {
+          "groupby_columns": [
+            "node_2"
+          ],
+          "agg_column": "node_5",
+          "agg_function": "sum"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_8",
+        "op": "load_constant",
+        "params": {
+          "value": 500
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_9",
+        "op": "gt",
+        "params": {},
+        "inputs": [
+          "node_6",
+          "node_8"
+        ]
+      },
+      {
+        "id": "node_10",
+        "op": "mean_if",
+        "params": {},
+        "inputs": [
+          "node_7",
+          "node_9"
+        ]
+      },
+      {
+        "id": "node_11",
+        "op": "logical_not",
+        "params": {},
+        "inputs": [
+          "node_9"
+        ]
+      },
+      {
+        "id": "node_12",
+        "op": "mean_if",
+        "params": {},
+        "inputs": [
+          "node_7",
+          "node_11"
+        ]
+      },
+      {
+        "id": "node_13",
+        "op": "subtract",
+        "params": {},
+        "inputs": [
+          "node_10",
+          "node_12"
+        ]
+      }
+    ],
+    "output_node": "node_13"
+  },
+  "python_code": "# Calculate revenue per invoice (Quantity * Price)\ndf['Revenue'] = df['Quantity'] * df['Price']\n\n# Extract date from InvoiceDate\ndf['Date'] = pd.to_datetime(df['InvoiceDate']).dt.date\n\n# Count invoices per day and calculate total revenue per day\ndaily_stats = df.groupby('Date').agg(\n    invoice_count=('Invoice', 'nunique'),\n    total_revenue=('Revenue', 'sum')\n).reset_index()\n\n# Classify days as high-volume (>500 invoices) or low-volume\ndaily_stats['volume_category'] = daily_stats['invoice_count'].apply(\n    lambda x: 'high_volume' if x > 500 else 'low_volume'\n)\n\n# Calculate average revenue per day for each category\navg_revenue_by_volume = daily_stats.groupby('volume_category')['total_revenue'].mean().reset_index()\n\n# Calculate revenue variance between high-volume and low-volume days\nhigh_vol_revenue = avg_revenue_by_volume.loc[avg_revenue_by_volume['volume_category'] == 'high_volume', 'total_revenue'].values\nlow_vol_revenue = avg_revenue_by_volume.loc[avg_revenue_by_volume['volume_category'] == 'low_volume', 'total_revenue'].values\n\nif len(high_vol_revenue) > 0 and len(low_vol_revenue) > 0:\n    revenue_variance = high_vol_revenue[0] - low_vol_revenue[0]\n    result = {\n        'high_volume_avg_revenue': high_vol_revenue[0],\n        'low_volume_avg_revenue': low_vol_revenue[0],\n        'revenue_variance': revenue_variance\n    }\nelse:\n    result = None"
+}

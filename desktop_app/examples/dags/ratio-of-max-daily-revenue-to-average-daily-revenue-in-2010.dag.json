@@ -1,0 +1,104 @@
+{
+  "name": "Ratio of max daily revenue to average daily revenue in 2010.",
+  "version": "1",
+  "dag": {
+    "graph_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "nodes": [
+      {
+        "id": "node_0",
+        "op": "filter_extract",
+        "params": {
+          "column": "InvoiceDate",
+          "condition": "InvoiceDate.str.startswith('2010')"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_1",
+        "op": "filter_extract",
+        "params": {
+          "column": "Quantity",
+          "condition": "InvoiceDate.str.startswith('2010')"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_2",
+        "op": "filter_extract",
+        "params": {
+          "column": "Price",
+          "condition": "InvoiceDate.str.startswith('2010')"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_3",
+        "op": "multiply",
+        "params": {},
+        "inputs": [
+          "node_1",
+          "node_2"
+        ]
+      },
+      {
+        "id": "node_4",
+        "op": "to_datetime",
+        "params": {
+          "format": "%Y-%m-%d %H:%M:%S"
+        },
+        "inputs": [
+          "node_0"
+        ]
+      },
+      {
+        "id": "node_5",
+        "op": "truncate_to",
+        "params": {
+          "unit": "day"
+        },
+        "inputs": [
+          "node_4"
+        ]
+      },
+      {
+        "id": "node_6",
+        "op": "groupby_agg",
+        "params": {
+          "groupby_columns": [
+            "node_5"
+          ],
+          "agg_column": "node_3",
+          "agg_function": "sum"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_7",
+        "op": "max",
+        "params": {},
+        "inputs": [
+          "node_6"
+        ]
+      },
+      {
+        "id": "node_8",
+        "op": "mean",
+        "params": {},
+        "inputs": [
+          "node_6"
+        ]
+      },
+      {
+        "id": "node_9",
+        "op": "divide",
+        "params": {},
+        "inputs": [
+          "node_7",
+          "node_8"
+        ]
+      }
+    ],
+    "output_node": "node_9"
+  },
+  "python_code": "# Filter data for 2010\ndf_2010 = df[df['InvoiceDate'].str.startswith('2010')].copy()\n\n# Calculate revenue per line item\ndf_2010['Revenue'] = df_2010['Quantity'] * df_2010['Price']\n\n# Extract date from InvoiceDate\ndf_2010['Date'] = df_2010['InvoiceDate'].str[:10]\n\n# Calculate daily revenue\ndaily_revenue = df_2010.groupby('Date')['Revenue'].sum().reset_index()\ndaily_revenue.columns = ['Date', 'DailyRevenue']\n\n# Calculate max daily revenue and average daily revenue\nmax_daily_revenue = daily_revenue['DailyRevenue'].max()\navg_daily_revenue = daily_revenue['DailyRevenue'].mean()\n\n# Calculate ratio\nresult = max_daily_revenue / avg_daily_revenue"
+}

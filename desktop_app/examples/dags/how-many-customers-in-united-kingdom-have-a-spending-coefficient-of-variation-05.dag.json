@@ -1,0 +1,137 @@
+{
+  "name": "How many customers in United Kingdom have a spending coefficient of variation > 0.5?",
+  "version": "1",
+  "dag": {
+    "graph_id": "c9d0e1f2-a3b4-5678-cdef-901234567890",
+    "nodes": [
+      {
+        "id": "node_1",
+        "op": "filter_extract",
+        "params": {
+          "column": "Customer ID",
+          "condition": "Country == 'United Kingdom'"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_2",
+        "op": "filter_extract",
+        "params": {
+          "column": "Quantity",
+          "condition": "Country == 'United Kingdom'"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_3",
+        "op": "filter_extract",
+        "params": {
+          "column": "Price",
+          "condition": "Country == 'United Kingdom'"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_4",
+        "op": "multiply",
+        "params": {},
+        "inputs": [
+          "node_2",
+          "node_3"
+        ]
+      },
+      {
+        "id": "node_5",
+        "op": "isnan",
+        "params": {},
+        "inputs": [
+          "node_1"
+        ]
+      },
+      {
+        "id": "node_6",
+        "op": "logical_not",
+        "params": {},
+        "inputs": [
+          "node_5"
+        ]
+      },
+      {
+        "id": "node_8",
+        "op": "index",
+        "params": {
+          "indices": "node_6"
+        },
+        "inputs": [
+          "node_4"
+        ]
+      },
+      {
+        "id": "node_9",
+        "op": "groupby_agg",
+        "params": {
+          "groupby_column": "Customer ID",
+          "agg_column": "node_8",
+          "agg_function": "mean"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_10",
+        "op": "groupby_agg",
+        "params": {
+          "groupby_column": "Customer ID",
+          "agg_column": "node_8",
+          "agg_function": "std"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_11",
+        "op": "divide",
+        "params": {},
+        "inputs": [
+          "node_10",
+          "node_9"
+        ]
+      },
+      {
+        "id": "node_12",
+        "op": "fillna",
+        "params": {
+          "value": 0
+        },
+        "inputs": [
+          "node_11"
+        ]
+      },
+      {
+        "id": "node_13",
+        "op": "load_constant",
+        "params": {
+          "value": 0.5
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_14",
+        "op": "gt",
+        "params": {},
+        "inputs": [
+          "node_12",
+          "node_13"
+        ]
+      },
+      {
+        "id": "node_15",
+        "op": "count_if",
+        "params": {},
+        "inputs": [
+          "node_14"
+        ]
+      }
+    ],
+    "output_node": "node_15"
+  },
+  "python_code": "# Filter for United Kingdom customers with non-null Customer ID\nuk_customers = df[df['Country'] == 'United Kingdom'].copy()\nuk_customers = uk_customers.dropna(subset=['Customer ID'])\n\n# Calculate total spending per invoice (Quantity * Price)\nuk_customers['Spending'] = uk_customers['Quantity'] * uk_customers['Price']\n\n# Group by Customer ID and calculate mean and std of spending per customer\ncustomer_stats = uk_customers.groupby('Customer ID')['Spending'].agg(['mean', 'std']).reset_index()\n\n# Calculate coefficient of variation (std / mean), handle cases where mean is 0\ncustomer_stats['cv'] = customer_stats['std'] / customer_stats['mean']\ncustomer_stats['cv'] = customer_stats['cv'].fillna(0)  # If mean is 0, cv is undefined, treat as 0\n\n# Count customers with cv > 0.5\nresult = len(customer_stats[customer_stats['cv'] > 0.5])"
+}

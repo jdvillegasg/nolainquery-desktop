@@ -1,0 +1,94 @@
+{
+  "name": "Identify customers who purchased in every single month of 2010.",
+  "version": "1",
+  "dag": {
+    "graph_id": "b7c8d9e0-f1a2-3456-bcde-789012345678",
+    "nodes": [
+      {
+        "id": "node_0",
+        "op": "filter_extract",
+        "params": {
+          "column": "InvoiceDate",
+          "condition": "InvoiceDate.str.startswith('2010') & `Customer ID`.notna()"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_1",
+        "op": "to_datetime",
+        "params": {
+          "format": "%Y-%m-%d %H:%M:%S"
+        },
+        "inputs": [
+          "node_0"
+        ]
+      },
+      {
+        "id": "node_2",
+        "op": "extract_month",
+        "params": {},
+        "inputs": [
+          "node_1"
+        ]
+      },
+      {
+        "id": "node_3",
+        "op": "groupby_agg",
+        "params": {
+          "groupby_column": "Customer ID",
+          "agg_column": "node_2",
+          "agg_function": "nunique"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_4",
+        "op": "load_constant",
+        "params": {
+          "value": 12
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_5",
+        "op": "eq",
+        "params": {},
+        "inputs": [
+          "node_3",
+          "node_4"
+        ]
+      },
+      {
+        "id": "node_6",
+        "op": "filter_extract",
+        "params": {
+          "column": "Customer ID",
+          "condition": "InvoiceDate.str.startswith('2010') & `Customer ID`.notna()"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_7",
+        "op": "groupby_agg",
+        "params": {
+          "groupby_column": "Customer ID",
+          "agg_column": "node_6",
+          "agg_function": "nunique"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_8",
+        "op": "index",
+        "params": {
+          "indices": "node_5"
+        },
+        "inputs": [
+          "node_7"
+        ]
+      }
+    ],
+    "output_node": "node_8"
+  },
+  "python_code": "# Filter data for 2010 and drop rows with missing Customer ID\ndf_2010 = df[df['InvoiceDate'].str.startswith('2010')].copy()\ndf_2010 = df_2010.dropna(subset=['Customer ID'])\n\n# Extract month from InvoiceDate\ndf_2010['Month'] = df_2010['InvoiceDate'].str[5:7]\n\n# Group by Customer ID and count distinct months purchased\ncustomer_months = df_2010.groupby('Customer ID')['Month'].nunique().reset_index()\ncustomer_months.columns = ['Customer ID', 'num_months']\n\n# Identify customers who purchased in all 12 months of 2010\nresult = customer_months[customer_months['num_months'] == 12]['Customer ID'].tolist()"
+}

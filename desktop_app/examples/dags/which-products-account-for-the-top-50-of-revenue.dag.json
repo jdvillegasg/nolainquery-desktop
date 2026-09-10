@@ -1,0 +1,99 @@
+{
+  "name": "Which products account for the top 50% of revenue?",
+  "version": "1",
+  "dag": {
+    "graph_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "nodes": [
+      {
+        "id": "node_0",
+        "op": "filter_extract",
+        "params": {
+          "column": "Quantity"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_1",
+        "op": "filter_extract",
+        "params": {
+          "column": "Price"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_2",
+        "op": "multiply",
+        "params": {},
+        "inputs": [
+          "node_0",
+          "node_1"
+        ]
+      },
+      {
+        "id": "node_3",
+        "op": "groupby_agg",
+        "params": {
+          "groupby_column": "StockCode",
+          "agg_column": "node_2",
+          "agg_function": "sum"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_4",
+        "op": "sort_values",
+        "params": {
+          "ascending": false
+        },
+        "inputs": [
+          "node_3"
+        ]
+      },
+      {
+        "id": "node_5",
+        "op": "cumshare",
+        "params": {},
+        "inputs": [
+          "node_4"
+        ]
+      },
+      {
+        "id": "node_6",
+        "op": "load_constant",
+        "params": {
+          "value": 0.5
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_7",
+        "op": "le",
+        "params": {},
+        "inputs": [
+          "node_5",
+          "node_6"
+        ]
+      },
+      {
+        "id": "node_8",
+        "op": "index",
+        "params": {
+          "indices": "node_7"
+        },
+        "inputs": [
+          "node_4"
+        ]
+      },
+      {
+        "id": "node_9",
+        "op": "get_index",
+        "params": {},
+        "inputs": [
+          "node_8"
+        ]
+      }
+    ],
+    "output_node": "node_9"
+  },
+  "python_code": "result = None\n# The query asks for products accounting for top 50% of revenue.\n# We have Price and Quantity columns, so we can compute revenue per product (StockCode).\n# Steps: compute total revenue per product, sort descending, compute cumulative percentage, filter top 50%.\n\n# Compute revenue per line item\ndf['Revenue'] = df['Quantity'] * df['Price']\n\n# Aggregate revenue by product (StockCode)\nproduct_revenue = df.groupby('StockCode', as_index=False)['Revenue'].sum()\n\n# Sort by revenue descending\nproduct_revenue = product_revenue.sort_values('Revenue', ascending=False).reset_index(drop=True)\n\n# Compute total revenue\ntotal_revenue = product_revenue['Revenue'].sum()\n\n# Compute cumulative revenue percentage\nproduct_revenue['CumulativeRevenue'] = product_revenue['Revenue'].cumsum()\nproduct_revenue['CumulativePercent'] = product_revenue['CumulativeRevenue'] / total_revenue\n\n# Filter products that account for top 50% of revenue\ntop_products = product_revenue[product_revenue['CumulativePercent'] <= 0.5].copy()\n\n# Optionally include the first product that pushes cumulative over 50% to be precise\n# But typical Pareto analysis includes products until cumulative >= 50%\n# Here we include products strictly <= 50% cumulative\nresult = top_products[['StockCode', 'Revenue']]"
+}

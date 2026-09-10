@@ -1,0 +1,170 @@
+{
+  "name": "Gini coefficient of revenue distribution in 2010.",
+  "version": "1",
+  "dag": {
+    "graph_id": "d4e5f6a7-b8c9-0123-def4-567890abcdef",
+    "nodes": [
+      {
+        "id": "node_0",
+        "op": "filter_extract",
+        "params": {
+          "column": "Price",
+          "condition": "InvoiceDate.str.startswith('2010')"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_1",
+        "op": "filter_extract",
+        "params": {
+          "column": "Quantity",
+          "condition": "InvoiceDate.str.startswith('2010')"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_2",
+        "op": "multiply",
+        "params": {},
+        "inputs": [
+          "node_0",
+          "node_1"
+        ]
+      },
+      {
+        "id": "node_3",
+        "op": "filter_extract",
+        "params": {
+          "column": "Customer ID",
+          "condition": "InvoiceDate.str.startswith('2010')"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_4",
+        "op": "isnan",
+        "params": {},
+        "inputs": [
+          "node_3"
+        ]
+      },
+      {
+        "id": "node_5",
+        "op": "logical_not",
+        "params": {},
+        "inputs": [
+          "node_4"
+        ]
+      },
+      {
+        "id": "node_6",
+        "op": "load_constant",
+        "params": {
+          "value": 0
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_7",
+        "op": "gt",
+        "params": {},
+        "inputs": [
+          "node_2",
+          "node_6"
+        ]
+      },
+      {
+        "id": "node_8",
+        "op": "logical_and",
+        "params": {},
+        "inputs": [
+          "node_5",
+          "node_7"
+        ]
+      },
+      {
+        "id": "node_9",
+        "op": "index",
+        "params": {
+          "indices": "node_8"
+        },
+        "inputs": [
+          "node_2"
+        ]
+      },
+      {
+        "id": "node_10",
+        "op": "groupby_agg",
+        "params": {
+          "groupby_column": "Customer ID",
+          "agg_column": "node_9",
+          "agg_function": "sum"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_11",
+        "op": "sort_values",
+        "params": {
+          "ascending": true
+        },
+        "inputs": [
+          "node_10"
+        ]
+      },
+      {
+        "id": "node_12",
+        "op": "cumshare",
+        "params": {},
+        "inputs": [
+          "node_11"
+        ]
+      },
+      {
+        "id": "node_13",
+        "op": "mean",
+        "params": {},
+        "inputs": [
+          "node_12"
+        ]
+      },
+      {
+        "id": "node_14",
+        "op": "load_constant",
+        "params": {
+          "value": 1
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_15",
+        "op": "multiply",
+        "params": {},
+        "inputs": [
+          "node_13",
+          "node_14"
+        ]
+      },
+      {
+        "id": "node_16",
+        "op": "subtract",
+        "params": {},
+        "inputs": [
+          "node_14",
+          "node_15"
+        ]
+      },
+      {
+        "id": "node_17",
+        "op": "subtract",
+        "params": {},
+        "inputs": [
+          "node_16",
+          "node_13"
+        ]
+      }
+    ],
+    "output_node": "node_17"
+  },
+  "python_code": "# Filter data for 2010\ndf_2010 = df[df['InvoiceDate'].str.startswith('2010')].copy()\n\n# Calculate revenue per transaction (Price * Quantity)\ndf_2010['Revenue'] = df_2010['Price'] * df_2010['Quantity']\n\n# Remove rows with missing Customer ID or negative revenue (returns)\ndf_2010 = df_2010.dropna(subset=['Customer ID'])\ndf_2010 = df_2010[df_2010['Revenue'] > 0]\n\n# Aggregate revenue by customer\ncustomer_revenue = df_2010.groupby('Customer ID')['Revenue'].sum().reset_index()\ncustomer_revenue.columns = ['Customer ID', 'TotalRevenue']\n\n# Sort by revenue ascending\ncustomer_revenue = customer_revenue.sort_values('TotalRevenue')\n\n# Calculate Gini coefficient\nn = len(customer_revenue)\nif n > 0:\n    # Lorenz curve: cumulative share of revenue\n    customer_revenue['CumulativeRevenue'] = customer_revenue['TotalRevenue'].cumsum()\n    total_revenue = customer_revenue['TotalRevenue'].sum()\n    customer_revenue['CumulativeShare'] = customer_revenue['CumulativeRevenue'] / total_revenue\n    \n    # Gini = 1 - (2 * area under Lorenz curve)\n    # Area under Lorenz curve = sum of (cumulative_share_i + cumulative_share_{i-1}) / 2 * (1/n)\n    customer_revenue['LorenzArea'] = (customer_revenue['CumulativeShare'] + customer_revenue['CumulativeShare'].shift(1, fill_value=0)) / 2 * (1 / n)\n    area_under_lorenz = customer_revenue['LorenzArea'].sum()\n    gini = 1 - 2 * area_under_lorenz\n    result = gini\nelse:\n    result = None"
+}

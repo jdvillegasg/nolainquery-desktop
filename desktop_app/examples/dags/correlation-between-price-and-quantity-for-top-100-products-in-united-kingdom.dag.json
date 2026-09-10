@@ -1,0 +1,180 @@
+{
+  "name": "Correlation between price and quantity for top 100 products in United Kingdom.",
+  "version": "1",
+  "dag": {
+    "graph_id": "b7c8d9e0-f1a2-3456-bcde-f01234567890",
+    "nodes": [
+      {
+        "id": "node_0",
+        "op": "filter_extract",
+        "params": {
+          "column": "Price",
+          "condition": "Country == 'United Kingdom'"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_1",
+        "op": "filter_extract",
+        "params": {
+          "column": "Quantity",
+          "condition": "Country == 'United Kingdom'"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_2",
+        "op": "filter_extract",
+        "params": {
+          "column": "StockCode",
+          "condition": "Country == 'United Kingdom'"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_3",
+        "op": "groupby_agg",
+        "params": {
+          "groupby_column": "StockCode",
+          "agg_column": "node_1",
+          "agg_function": "sum"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_4",
+        "op": "nlargest",
+        "params": {
+          "n": 100
+        },
+        "inputs": [
+          "node_3"
+        ]
+      },
+      {
+        "id": "node_5",
+        "op": "get_index",
+        "params": {},
+        "inputs": [
+          "node_4"
+        ]
+      },
+      {
+        "id": "node_6",
+        "op": "isin_from_node",
+        "params": {},
+        "inputs": [
+          "node_2",
+          "node_5"
+        ]
+      },
+      {
+        "id": "node_7",
+        "op": "index",
+        "params": {
+          "indices": "node_6"
+        },
+        "inputs": [
+          "node_0"
+        ]
+      },
+      {
+        "id": "node_8",
+        "op": "index",
+        "params": {
+          "indices": "node_6"
+        },
+        "inputs": [
+          "node_1"
+        ]
+      },
+      {
+        "id": "node_9",
+        "op": "mean",
+        "params": {},
+        "inputs": [
+          "node_7"
+        ]
+      },
+      {
+        "id": "node_10",
+        "op": "mean",
+        "params": {},
+        "inputs": [
+          "node_8"
+        ]
+      },
+      {
+        "id": "node_11",
+        "op": "subtract",
+        "params": {},
+        "inputs": [
+          "node_7",
+          "node_9"
+        ]
+      },
+      {
+        "id": "node_12",
+        "op": "subtract",
+        "params": {},
+        "inputs": [
+          "node_8",
+          "node_10"
+        ]
+      },
+      {
+        "id": "node_13",
+        "op": "multiply",
+        "params": {},
+        "inputs": [
+          "node_11",
+          "node_12"
+        ]
+      },
+      {
+        "id": "node_14",
+        "op": "mean",
+        "params": {},
+        "inputs": [
+          "node_13"
+        ]
+      },
+      {
+        "id": "node_15",
+        "op": "std",
+        "params": {},
+        "inputs": [
+          "node_7"
+        ]
+      },
+      {
+        "id": "node_16",
+        "op": "std",
+        "params": {},
+        "inputs": [
+          "node_8"
+        ]
+      },
+      {
+        "id": "node_17",
+        "op": "multiply",
+        "params": {},
+        "inputs": [
+          "node_15",
+          "node_16"
+        ]
+      },
+      {
+        "id": "node_18",
+        "op": "divide",
+        "params": {},
+        "inputs": [
+          "node_14",
+          "node_17"
+        ]
+      }
+    ],
+    "output_node": "node_18"
+  },
+  "python_code": "uk_df = df[df['Country'] == 'United Kingdom'].copy()\ntop_products = uk_df.groupby('StockCode')['Quantity'].sum().nlargest(100).index\ntop_products_df = uk_df[uk_df['StockCode'].isin(top_products)]\nresult = top_products_df[['Price', 'Quantity']].corr()"
+}

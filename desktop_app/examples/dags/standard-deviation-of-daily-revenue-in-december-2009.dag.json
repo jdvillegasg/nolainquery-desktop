@@ -1,0 +1,75 @@
+{
+  "name": "Standard deviation of daily revenue in December 2009.",
+  "version": "1",
+  "dag": {
+    "graph_id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+    "nodes": [
+      {
+        "id": "node_0",
+        "op": "filter_extract",
+        "params": {
+          "column": "Quantity",
+          "condition": "InvoiceDate.str.startswith('2009-12')"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_1",
+        "op": "filter_extract",
+        "params": {
+          "column": "Price",
+          "condition": "InvoiceDate.str.startswith('2009-12')"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_2",
+        "op": "multiply",
+        "params": {},
+        "inputs": [
+          "node_0",
+          "node_1"
+        ]
+      },
+      {
+        "id": "node_3",
+        "op": "filter_extract",
+        "params": {
+          "column": "InvoiceDate",
+          "condition": "InvoiceDate.str.startswith('2009-12')"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_4",
+        "op": "str",
+        "params": {},
+        "inputs": [
+          "node_3"
+        ]
+      },
+      {
+        "id": "node_5",
+        "op": "groupby_agg",
+        "params": {
+          "groupby_columns": [
+            "node_4"
+          ],
+          "agg_column": "node_2",
+          "agg_function": "sum"
+        },
+        "inputs": []
+      },
+      {
+        "id": "node_6",
+        "op": "std",
+        "params": {},
+        "inputs": [
+          "node_5"
+        ]
+      }
+    ],
+    "output_node": "node_6"
+  },
+  "python_code": "result = df[df['InvoiceDate'].str.startswith('2009-12')].copy()\nresult['Revenue'] = result['Quantity'] * result['Price']\ndaily_revenue = result.groupby(result['InvoiceDate'].str[:10])['Revenue'].sum()\nresult = daily_revenue.std()"
+}
