@@ -1,7 +1,7 @@
 """
 Operation Registry - The "Compiler Instruction Set"
 
-Shared operation registry for the desktop local engine and the hosted service:
+Single source of truth for cloud (`cloud_api`) and desktop (`desktop_app/python_engine`):
 import this package as `query_operations` or via compatibility shims (`app.core.operations`,
 `src.executors.pandas.operations`).
 

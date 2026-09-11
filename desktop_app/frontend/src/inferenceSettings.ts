@@ -12,10 +12,6 @@ export const OPENROUTER_KEYS_URL = "https://openrouter.ai/keys";
 export function loadInferenceSettings(): InferenceSettings {
   try {
     const openRouterKey = localStorage.getItem(LLM_KEY_STORAGE_KEY) ?? "";
-    // Desktop builds are BYOK-only; normalize legacy platform mode on read.
-    if (localStorage.getItem(MODE_STORAGE_KEY) !== "byok") {
-      localStorage.setItem(MODE_STORAGE_KEY, "byok");
-    }
     return { openRouterKey };
   } catch {
     return { openRouterKey: "" };
