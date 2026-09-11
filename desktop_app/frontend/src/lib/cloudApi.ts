@@ -1,10 +1,10 @@
 import { activeLlmCredential } from "../inferenceSettings";
 
 export const CLOUD_API =
-  import.meta.env.VITE_CLOUD_API_URL?.replace(/\/$/, "") || "http://127.0.0.1:8000";
+  import.meta.env.VITE_CLOUD_API_URL?.replace(/\/$/, "") || "https://nolainquery.com";
 
 export const SIDECAR_API =
-  import.meta.env.VITE_SIDECAR_API_URL?.replace(/\/$/, "") || "http://127.0.0.1:8001";
+  import.meta.env.VITE_SIDECAR_API_URL?.replace(/\/$/, "") || "https://nolainquery.com";
 const SIDECAR_TOKEN = import.meta.env.VITE_SIDECAR_TOKEN?.trim() || "";
 
 export function sidecarFetch(
