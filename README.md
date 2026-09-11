@@ -97,20 +97,11 @@ More detail: [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md).
 
 ## Build from source
 
-Use this for a development window (`tauri dev`) with the local Python engine running from this checkout. Source builds talk to [https://nolainquery.com](https://nolainquery.com) by default; keys are still entered in **Settings**, not in env files.
-
-Tauri needs a bundled Python sidecar at compile time, even for `tauri dev`. Development still runs the live engine from `launch.sh` / `launch.ps1` on port 8001; the sidecar binary only satisfies the compile check. Build it **once** after setup (re-run when the Python engine changes). Output is gitignored under `desktop_app/frontend/src-tauri/bin/`.
-
-| Platform | Sidecar |
-| --- | --- |
-| Linux / macOS | `./desktop_app/python_engine/build-sidecar.sh` |
-| Windows | `.\desktop_app\python_engine\build-sidecar.ps1` |
-
-`distribute.sh` and `distribute-windows.ps1` run this step for you.
-
 ### Linux
 
-Debian or Ubuntu with `apt`, Git, and `sudo`:
+You need [Git](https://git-scm.com/downloads) and `sudo` (Debian/Ubuntu).
+
+Run the app:
 
 ```bash
 git clone https://github.com/jdvillegasg/nolainquery-desktop.git
@@ -120,31 +111,22 @@ cd nolainquery-desktop
 ./launch.sh
 ```
 
-On another distro, install [Tauri Linux prerequisites](https://v2.tauri.app/start/prerequisites/) first, then `python3 -m venv .venv`, `pip install -r requirements.txt`, `pip install pyinstaller`, `npm install` in `desktop_app/frontend`, and the sidecar script above.
-
-Leave the terminal open. `Ctrl+C` stops the UI and the engine on port 8001.
-
-### Windows
-
-Install [Python 3.11+](https://www.python.org/downloads/) (add to PATH), [Node.js 20+](https://nodejs.org/), [Rust](https://rustup.rs/), and [Visual Studio Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/) with the **Desktop development with C++** workload.
-
-```powershell
-git clone https://github.com/jdvillegasg/nolainquery-desktop.git
-cd nolainquery-desktop
-.\setup-windows.ps1
-.\desktop_app\python_engine\build-sidecar.ps1
-.\launch.ps1
-```
-
-### macOS
-
-Packaged `.app` / `.dmg` builds are not in this repo yet. Source works:
-
-1. Install Xcode Command Line Tools: `xcode-select --install`
-2. Install [Homebrew](https://brew.sh/), then:
+Or build a double-click AppImage:
 
 ```bash
-brew install python@3.11 node rust
+git clone https://github.com/jdvillegasg/nolainquery-desktop.git
+cd nolainquery-desktop
+./setup.sh
+./distribute.sh
+chmod +x Nolain-Data-Query.AppImage
+./Nolain-Data-Query.AppImage
+```
+
+If the AppImage build hangs: `sudo apt install libfuse2`, then run `./distribute.sh` again.
+
+Other Linux distros — install [Tauri Linux prerequisites](https://v2.tauri.app/start/prerequisites/), then:
+
+```bash
 git clone https://github.com/jdvillegasg/nolainquery-desktop.git
 cd nolainquery-desktop
 python3 -m venv .venv
@@ -157,26 +139,24 @@ pip install pyinstaller
 ./launch.sh
 ```
 
-### Linux AppImage
+### Windows
 
-Zero-install binary; the hosted API URL is baked in (`https://nolainquery.com`):
+1. Install [Git](https://git-scm.com/download/win).
+2. Install [Python 3.11+](https://www.python.org/downloads/) and tick **Add python.exe to PATH**.
+3. Install [Node.js 20+](https://nodejs.org/).
+4. Install [Rust](https://rustup.rs/).
+5. Install [Visual Studio Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/) with the **Desktop development with C++** workload.
+6. Open PowerShell and run the app:
 
-```bash
+```powershell
 git clone https://github.com/jdvillegasg/nolainquery-desktop.git
 cd nolainquery-desktop
-./setup.sh
-./distribute.sh
-chmod +x Nolain-Data-Query.AppImage
-./Nolain-Data-Query.AppImage
+.\setup-windows.ps1
+.\desktop_app\python_engine\build-sidecar.ps1
+.\launch.ps1
 ```
 
-If AppImage bundling hangs, install FUSE: `sudo apt install libfuse2`.
-
-Staging host (do not edit env files): `NOLAIN_CLOUD_API_URL=… NOLAIN_PORTAL_URL=… ./distribute.sh`.
-
-### Windows installers
-
-NSIS `.exe` for a guided setup, `.msi` for enterprise. Prerequisites match the Windows source section.
+Or build an installer:
 
 ```powershell
 git clone https://github.com/jdvillegasg/nolainquery-desktop.git
@@ -184,9 +164,31 @@ cd nolainquery-desktop
 .\distribute-windows.ps1
 ```
 
-Installers land in `dist\windows\`. Run the `.exe` or `.msi`, then start **nolainquery** from the Start menu.
+Then run the `.exe` or `.msi` in `dist\windows\` (antivirus off during install — see [Downloads](#downloads)) and start **nolainquery** from the Start menu.
 
-Staging host (PowerShell): set `$env:NOLAIN_CLOUD_API_URL` and `$env:NOLAIN_PORTAL_URL`, then run `.\distribute-windows.ps1`.
+### macOS
+
+1. `xcode-select --install`
+2. Install [Homebrew](https://brew.sh/).
+3. In Terminal:
+
+```bash
+brew install python@3.11 node rust git
+git clone https://github.com/jdvillegasg/nolainquery-desktop.git
+cd nolainquery-desktop
+python3 -m venv .venv
+source .venv/bin/activate
+pip install --upgrade pip setuptools wheel
+pip install -r requirements.txt
+pip install pyinstaller
+(cd desktop_app/frontend && npm install)
+./desktop_app/python_engine/build-sidecar.sh
+./launch.sh
+```
+
+---
+
+When the app window opens, continue at [First run](#first-run). Leave the terminal open while you use the app; `Ctrl+C` (Linux/macOS) or close the PowerShell window (Windows) stops it.
 
 ## Repository layout
 
